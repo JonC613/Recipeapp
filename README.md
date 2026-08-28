@@ -12,6 +12,10 @@ npm run dev
 
 The Worker and its D1/R2 bindings run locally by default; Cloudflare credentials are not needed for local work.
 
+At the local address shown by Vite, you can add a recipe manually, enter optional metadata and notes,
+edit it, favorite it, filter by title, and deliberately delete it. Local preview applies the committed
+D1 migration automatically; if recipe data looks stale, restart `npm run dev` or `npm run preview`.
+
 ## Validation
 
 ```powershell

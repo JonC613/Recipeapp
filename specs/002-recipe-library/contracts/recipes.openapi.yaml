@@ -1,0 +1,59 @@
+openapi: 3.1.0
+info:
+  title: Recipe Library API
+  version: 1.0.0
+paths:
+  /api/recipes:
+    get:
+      summary: List recipes, optionally filtered by title
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+      responses:
+        '200': { description: Recipe summaries }
+    post:
+      summary: Create a manual recipe
+      responses:
+        '201': { description: Created recipe }
+        '400': { $ref: '#/components/responses/ValidationError' }
+  /api/recipes/{recipeId}:
+    parameters:
+      - name: recipeId
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      summary: Retrieve a complete recipe
+      responses:
+        '200': { description: Recipe }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      summary: Replace editable fields of a manual recipe
+      responses:
+        '200': { description: Updated recipe }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      summary: Permanently delete a recipe and child records
+      responses:
+        '204': { description: Deleted }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /api/recipes/{recipeId}/favorite:
+    parameters:
+      - name: recipeId
+        in: path
+        required: true
+        schema: { type: string }
+    patch:
+      summary: Set favorite state
+      responses:
+        '200': { description: Updated recipe }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '404': { $ref: '#/components/responses/NotFound' }
+components:
+  responses:
+    ValidationError:
+      description: Safe field-level validation error
+    NotFound:
+      description: Safe missing-recipe error

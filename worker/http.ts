@@ -1,4 +1,4 @@
-export type PublicErrorCode = 'METHOD_NOT_ALLOWED' | 'NOT_FOUND' | 'SERVICE_UNAVAILABLE'
+export type PublicErrorCode = 'METHOD_NOT_ALLOWED' | 'NOT_FOUND' | 'SERVICE_UNAVAILABLE' | 'VALIDATION_ERROR'
 
 export function jsonResponse(body: unknown, init: ResponseInit = {}): Response {
   const headers = new Headers(init.headers)
@@ -15,4 +15,12 @@ export function jsonError(
   headers?: HeadersInit,
 ): Response {
   return jsonResponse({ error: { code, message, retryable } }, { status, headers })
+}
+
+export function validationError(message: string): Response {
+  return jsonError('VALIDATION_ERROR', message, false, 400)
+}
+
+export function recipeNotFound(): Response {
+  return jsonError('NOT_FOUND', 'The requested recipe was not found.', false, 404)
 }

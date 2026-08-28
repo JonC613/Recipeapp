@@ -15,7 +15,9 @@
 		{
 			"binding": "DB",
 			"database_name": "recipeapp-db",
-			"database_id": "f49edf5c-a339-48a8-9b06-0848094b310c"
+			"database_id": "f49edf5c-a339-48a8-9b06-0848094b310c",
+			"preview_database_id": "recipeapp-local",
+			"migrations_dir": "migrations"
 		}
 	],
 	"r2_buckets": [
