@@ -17,3 +17,6 @@
 - **Feature 003 update (approved):** Recorded the implemented deterministic URL-import capability:
   bounded public-page retrieval, Recipe JSON-LD normalization, independent D1 import history,
   safe recovery outcomes, and retained unsaved drafts. Source: `specs/003-url-import/`.
+- **Feature 004 update (approved):** Recorded the implemented review-and-save capability: editable
+  ready drafts, explicit one-time approval into URL-sourced recipes, preserved immutable import
+  provenance, and responsive approval and recovery journeys. Source: `specs/004-import-review/`.

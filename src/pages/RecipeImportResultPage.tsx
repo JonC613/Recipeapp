@@ -9,5 +9,5 @@ export function RecipeImportResultPage() {
   const [imported, setImported] = useState<RecipeImport>()
   const [error, setError] = useState<string>()
   useEffect(() => { if (importId) void getRecipeImport(importId).then(setImported).catch((cause) => setError(cause instanceof Error ? cause.message : 'The import could not be retrieved.')) }, [importId])
-  return <section className="recipe-page"><p className="eyebrow">Recipe URL</p><h1>Import draft</h1>{error ? <><p role="alert">{error}</p><Link to="/recipes/import">Import another recipe</Link></> : !imported ? <p role="status">Loading import draft…</p> : <><ImportDraftSummary imported={imported} /><Link to="/recipes/import">Import another recipe</Link></>}</section>
+  return <section className="recipe-page"><p className="eyebrow">Recipe URL</p><h1>Import draft</h1>{error ? <><p role="alert">{error}</p><Link to="/recipes/import">Import another recipe</Link></> : !imported ? <p role="status">Loading import draft…</p> : <><ImportDraftSummary imported={imported} />{imported.status === 'ready' && !imported.approvedRecipeId && <Link className="button-link" to={`/imports/${imported.id}/review`}>Review and save</Link>}<Link to="/recipes/import">Import another recipe</Link></>}</section>
 }

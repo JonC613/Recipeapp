@@ -1,9 +1,9 @@
-import type { NormalizedManualRecipe } from '../../src/domain/recipe/schema.js'
+import type { NormalizedManualRecipe, RecipeSource } from '../../src/domain/recipe/schema.js'
 
 export interface StoredRecipe extends NormalizedManualRecipe {
   id: string
   favorite: boolean
-  source: { type: 'manual' }
+  source: RecipeSource
   createdAt: string
   updatedAt: string
 }
@@ -12,7 +12,7 @@ type RecipeRow = {
   id: string; title: string; description: string | null; servings: number | null
   prep_minutes: number | null; cook_minutes: number | null; total_minutes: number | null
   cuisine: string | null; category: string | null; notes: string | null; favorite: number
-  created_at: string; updated_at: string
+  source_type: 'manual' | 'url'; source_url: string | null; created_at: string; updated_at: string
 }
 
 function mapRecipe(row: RecipeRow): Omit<StoredRecipe, 'ingredients' | 'instructions' | 'tags'> {
@@ -21,15 +21,16 @@ function mapRecipe(row: RecipeRow): Omit<StoredRecipe, 'ingredients' | 'instruct
     prepMinutes: row.prep_minutes ?? undefined, cookMinutes: row.cook_minutes ?? undefined,
     totalMinutes: row.total_minutes ?? undefined, cuisine: row.cuisine ?? undefined,
     category: row.category ?? undefined, notes: row.notes ?? undefined, favorite: row.favorite === 1,
-    source: { type: 'manual' }, createdAt: row.created_at, updatedAt: row.updated_at,
+    source: row.source_type === 'url' && row.source_url ? { type: 'url', originalUrl: row.source_url } : { type: 'manual' }, createdAt: row.created_at, updatedAt: row.updated_at,
   }
 }
 
-export async function createRecipe(db: D1Database, recipe: NormalizedManualRecipe): Promise<StoredRecipe> {
-  const id = crypto.randomUUID()
+export async function createRecipe(db: D1Database, recipe: NormalizedManualRecipe, options: { source?: RecipeSource; favorite?: boolean; id?: string } = {}): Promise<StoredRecipe> {
+  const id = options.id ?? crypto.randomUUID()
   const now = new Date().toISOString()
-  const statements = [db.prepare(`INSERT INTO recipes (id, title, description, servings, prep_minutes, cook_minutes, total_minutes, cuisine, category, notes, favorite, source_type, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 'manual', ?, ?)`)
-    .bind(id, recipe.title, recipe.description ?? null, recipe.servings ?? null, recipe.prepMinutes ?? null, recipe.cookMinutes ?? null, recipe.totalMinutes ?? null, recipe.cuisine ?? null, recipe.category ?? null, recipe.notes ?? null, now, now)]
+  const source = options.source ?? { type: 'manual' }
+  const statements = [db.prepare(`INSERT INTO recipes (id, title, description, servings, prep_minutes, cook_minutes, total_minutes, cuisine, category, notes, favorite, source_type, source_url, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    .bind(id, recipe.title, recipe.description ?? null, recipe.servings ?? null, recipe.prepMinutes ?? null, recipe.cookMinutes ?? null, recipe.totalMinutes ?? null, recipe.cuisine ?? null, recipe.category ?? null, recipe.notes ?? null, options.favorite ? 1 : 0, source.type, source.type === 'url' ? source.originalUrl : null, now, now)]
   for (const ingredient of recipe.ingredients) statements.push(db.prepare(`INSERT INTO recipe_ingredients (id, recipe_id, position, original_text, quantity, quantity_text, unit, ingredient, preparation, optional) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
     .bind(crypto.randomUUID(), id, ingredient.position, ingredient.originalText, ingredient.quantity ?? null, ingredient.quantityText ?? null, ingredient.unit ?? null, ingredient.ingredient ?? null, ingredient.preparation ?? null, ingredient.optional ? 1 : 0))
   for (const instruction of recipe.instructions) statements.push(db.prepare(`INSERT INTO recipe_instructions (id, recipe_id, step_number, text) VALUES (?, ?, ?, ?)`)

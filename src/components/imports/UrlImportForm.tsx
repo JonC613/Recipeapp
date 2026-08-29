@@ -11,7 +11,7 @@ export function ImportDraftSummary({ imported }: { imported: RecipeImport }) {
     <p className="recipe-metadata">Source: <a href={draft.source.originalUrl} target="_blank" rel="noreferrer">{draft.source.originalUrl}</a></p>
     {(draft.ingredients?.length ?? 0) > 0 && <section><h3>Ingredients</h3><ul>{draft.ingredients?.map((ingredient, index) => <li key={`${ingredient.originalText}-${index}`}>{ingredient.originalText}</li>)}</ul></section>}
     {(draft.instructions?.length ?? 0) > 0 && <section><h3>Instructions</h3><ol>{draft.instructions?.map((instruction, index) => <li key={`${instruction.text}-${index}`}>{instruction.text}</li>)}</ol></section>}
-    <p className="hint">This is an unsaved draft. Review and save will be added in the next feature.</p>
+    <p className="hint">This is an unsaved draft. Review and save it when you are ready.</p>
   </section>
 }
 
@@ -39,6 +39,6 @@ export function UrlImportForm({ onImport }: { onImport: (url: string) => Promise
       {error && <p role="alert">{error}</p>}
       <button type="submit">Import recipe</button>
     </form>
-    {draft && <><ImportDraftSummary imported={result!} /><a href={`/imports/${result!.id}`}>Reopen this import draft</a></>}
+    {draft && <><ImportDraftSummary imported={result!} /><a href={`/imports/${result!.id}`}>Reopen this import draft</a><a href={`/imports/${result!.id}/review`}>Review and save</a></>}
   </>
 }

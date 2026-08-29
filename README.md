@@ -18,7 +18,8 @@ from the manual-recipe page, paste a public recipe URL, and receive an unsaved d
 imports use only published Recipe JSON-LD; they do not use AI or automatically save a library recipe.
 If a page does not publish a usable recipe, blocks imports, or is temporarily unavailable, use the safe
 message shown to retry another URL or enter the recipe manually. A retained ready draft can be reopened
-from its import result link. Local preview applies the committed
+from its import result link. Choose **Review and save** to correct the draft and explicitly create one
+library recipe; its original URL import stays unchanged, and Cancel leaves it unsaved. Local preview applies the committed
 D1 migration automatically; if recipe data looks stale, restart `npm run dev` or `npm run preview`.
 
 ## Validation

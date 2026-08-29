@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS recipe_ingredients (id TEXT PRIMARY KEY, recipe_id TE
 CREATE TABLE IF NOT EXISTS recipe_instructions (id TEXT PRIMARY KEY, recipe_id TEXT NOT NULL REFERENCES recipes(id) ON DELETE CASCADE, step_number INTEGER NOT NULL, text TEXT NOT NULL, UNIQUE(recipe_id, step_number));
 CREATE TABLE IF NOT EXISTS recipe_tags (recipe_id TEXT NOT NULL REFERENCES recipes(id) ON DELETE CASCADE, tag TEXT NOT NULL, PRIMARY KEY(recipe_id, tag));
 CREATE INDEX IF NOT EXISTS recipes_title_index ON recipes(title COLLATE NOCASE);
-CREATE TABLE IF NOT EXISTS recipe_imports (id TEXT PRIMARY KEY, source_type TEXT NOT NULL CHECK (source_type = 'url'), source_url TEXT NOT NULL, raw_text TEXT, parsed_recipe_json TEXT, status TEXT NOT NULL CHECK (status IN ('ready', 'failed', 'no_recipe')), failure_code TEXT, created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS recipe_imports (id TEXT PRIMARY KEY, source_type TEXT NOT NULL CHECK (source_type = 'url'), source_url TEXT NOT NULL, raw_text TEXT, parsed_recipe_json TEXT, status TEXT NOT NULL CHECK (status IN ('ready', 'failed', 'no_recipe')), failure_code TEXT, created_at TEXT NOT NULL, approved_recipe_id TEXT);
 CREATE INDEX IF NOT EXISTS recipe_imports_created_at_index ON recipe_imports(created_at DESC);
 `
 

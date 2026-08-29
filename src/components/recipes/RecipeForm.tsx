@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { ManualRecipeInput } from '../../domain/recipe/schema.js'
 
-export function RecipeForm({ onSave, initial }: { onSave: (recipe: ManualRecipeInput) => Promise<void>; initial?: ManualRecipeInput }) {
+export function RecipeForm({ onSave, initial, submitLabel = 'Save recipe' }: { onSave: (recipe: ManualRecipeInput) => Promise<void>; initial?: ManualRecipeInput; submitLabel?: string }) {
   const [title, setTitle] = useState(initial?.title ?? '')
   const [description, setDescription] = useState(initial?.description ?? '')
   const [servings, setServings] = useState(initial?.servings?.toString() ?? '')
@@ -48,7 +48,7 @@ export function RecipeForm({ onSave, initial }: { onSave: (recipe: ManualRecipeI
     <label>Instructions <span className="hint">One step per line</span><textarea name="instructions" value={instructions} onChange={(event) => setInstructions(event.target.value)} rows={6} /></label>
     <label>Notes<textarea name="notes" value={notes} onChange={(event) => setNotes(event.target.value)} rows={4} /></label>
     {error && <p role="alert">{error}</p>}
-    <button type="submit" disabled={saving}>{saving ? 'Saving…' : 'Save recipe'}</button>
+    <button type="submit" disabled={saving}>{saving ? 'Saving…' : submitLabel}</button>
   </form>
 }
 

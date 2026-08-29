@@ -1,0 +1,18 @@
+openapi: 3.1.0
+info: { title: Recipe Import Approval API, version: 1.0.0 }
+paths:
+  /api/import/{importId}/approve:
+    post:
+      summary: Explicitly create one approved recipe from a ready import
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Reviewed recipe fields and favorite choice
+      responses:
+        '201': { description: Newly approved library recipe }
+        '400': { description: Safe recipe-validation error }
+        '404': { description: Import does not exist }
+        '409': { description: Import is not ready or was already approved }

@@ -1,11 +1,11 @@
-import type { ManualRecipeInput, RecipeIngredientInput, RecipeInstructionInput } from '../domain/recipe/schema.js'
+import type { ManualRecipeInput, RecipeIngredientInput, RecipeInstructionInput, RecipeSource } from '../domain/recipe/schema.js'
 
 export interface RecipeSummary { id: string; title: string; favorite: boolean; prepMinutes?: number; cookMinutes?: number; category?: string }
 export interface Recipe extends RecipeSummary, ManualRecipeInput {
   ingredients: Array<RecipeIngredientInput & { id: string; position: number }>
   instructions: Array<RecipeInstructionInput & { id: string; stepNumber: number }>
   tags: string[]
-  source: { type: 'manual' }
+  source: RecipeSource
   createdAt: string
   updatedAt: string
 }

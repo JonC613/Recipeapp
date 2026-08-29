@@ -1,4 +1,4 @@
-export type PublicErrorCode = 'METHOD_NOT_ALLOWED' | 'NOT_FOUND' | 'SERVICE_UNAVAILABLE' | 'VALIDATION_ERROR' | 'NO_RECIPE'
+export type PublicErrorCode = 'METHOD_NOT_ALLOWED' | 'NOT_FOUND' | 'SERVICE_UNAVAILABLE' | 'VALIDATION_ERROR' | 'NO_RECIPE' | 'CONFLICT'
 
 export function jsonResponse(body: unknown, init: ResponseInit = {}): Response {
   const headers = new Headers(init.headers)

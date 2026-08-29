@@ -22,6 +22,8 @@ export interface ManualRecipeInput {
   ingredients?: RecipeIngredientInput[]
   instructions?: RecipeInstructionInput[]
 }
+export interface ReviewRecipeInput extends ManualRecipeInput { favorite?: boolean }
+export type RecipeSource = { type: 'manual' } | { type: 'url'; originalUrl: string }
 export interface NormalizedManualRecipe extends Omit<ManualRecipeInput, 'tags' | 'ingredients' | 'instructions'> {
   tags: string[]
   ingredients: Array<RecipeIngredientInput & { position: number }>
