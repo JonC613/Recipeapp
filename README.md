@@ -13,7 +13,12 @@ npm run dev
 The Worker and its D1/R2 bindings run locally by default; Cloudflare credentials are not needed for local work.
 
 At the local address shown by Vite, you can add a recipe manually, enter optional metadata and notes,
-edit it, favorite it, filter by title, and deliberately delete it. Local preview applies the committed
+edit it, favorite it, filter by title, and deliberately delete it. You can also choose **Import from URL**
+from the manual-recipe page, paste a public recipe URL, and receive an unsaved deterministic draft. URL
+imports use only published Recipe JSON-LD; they do not use AI or automatically save a library recipe.
+If a page does not publish a usable recipe, blocks imports, or is temporarily unavailable, use the safe
+message shown to retry another URL or enter the recipe manually. A retained ready draft can be reopened
+from its import result link. Local preview applies the committed
 D1 migration automatically; if recipe data looks stale, restart `npm run dev` or `npm run preview`.
 
 ## Validation

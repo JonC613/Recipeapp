@@ -1,0 +1,4 @@
+import type { RecipeImport } from '../domain/recipe/imports.js'
+async function request<T>(path: string, init?: RequestInit): Promise<T> { const response = await fetch(path, { ...init, headers: { accept: 'application/json', ...init?.headers } }); if (!response.ok) { const body = await response.json().catch(() => undefined) as { error?: { message?: string } }; throw new Error(body?.error?.message ?? 'The recipe import could not be completed.') } return response.json() as Promise<T> }
+export function importRecipeUrl(url: string): Promise<RecipeImport> { return request('/api/import/url', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url }) }) }
+export function getRecipeImport(importId: string): Promise<RecipeImport> { return request(`/api/import/${encodeURIComponent(importId)}`) }

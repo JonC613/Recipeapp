@@ -1,0 +1,17 @@
+openapi: 3.1.0
+info: { title: Recipe Import API, version: 1.0.0 }
+paths:
+  /api/import/url:
+    post:
+      summary: Create an unsaved URL import draft
+      responses:
+        '201': { description: Ready import with importId and draft }
+        '400': { description: Invalid or disallowed URL }
+        '422': { description: No usable recipe information }
+        '503': { description: Safe retryable retrieval failure }
+  /api/import/{importId}:
+    get:
+      summary: Retrieve retained URL import history and draft
+      responses:
+        '200': { description: Import record }
+        '404': { description: Safe missing-import response }
