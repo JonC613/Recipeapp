@@ -12,7 +12,7 @@ type RecipeRow = {
   id: string; title: string; description: string | null; servings: number | null
   prep_minutes: number | null; cook_minutes: number | null; total_minutes: number | null
   cuisine: string | null; category: string | null; notes: string | null; favorite: number
-  source_type: 'manual' | 'url'; source_url: string | null; created_at: string; updated_at: string
+  source_type: 'manual' | 'url' | 'text'; source_url: string | null; created_at: string; updated_at: string
 }
 
 function mapRecipe(row: RecipeRow): Omit<StoredRecipe, 'ingredients' | 'instructions' | 'tags'> {
@@ -21,7 +21,7 @@ function mapRecipe(row: RecipeRow): Omit<StoredRecipe, 'ingredients' | 'instruct
     prepMinutes: row.prep_minutes ?? undefined, cookMinutes: row.cook_minutes ?? undefined,
     totalMinutes: row.total_minutes ?? undefined, cuisine: row.cuisine ?? undefined,
     category: row.category ?? undefined, notes: row.notes ?? undefined, favorite: row.favorite === 1,
-    source: row.source_type === 'url' && row.source_url ? { type: 'url', originalUrl: row.source_url } : { type: 'manual' }, createdAt: row.created_at, updatedAt: row.updated_at,
+    source: row.source_type === 'url' && row.source_url ? { type: 'url', originalUrl: row.source_url } : row.source_type === 'text' ? { type: 'text' } : { type: 'manual' }, createdAt: row.created_at, updatedAt: row.updated_at,
   }
 }
 

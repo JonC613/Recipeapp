@@ -14,6 +14,6 @@ export function RecipeDetailPage() {
     {recipe.ingredients.length > 0 && <section><h2>Ingredients</h2><ul>{recipe.ingredients.map((ingredient) => <li key={ingredient.id}>{ingredient.originalText}</li>)}</ul></section>}
     {recipe.instructions.length > 0 && <section><h2>Instructions</h2><ol>{recipe.instructions.map((instruction) => <li key={instruction.id}>{instruction.text}</li>)}</ol></section>}
     {recipe.notes && <section><h2>Notes</h2><p>{recipe.notes}</p></section>}
-    <section><h2>Source</h2><p>{recipe.source.type === 'url' ? <a href={recipe.source.originalUrl} target="_blank" rel="noreferrer">Imported from {recipe.source.originalUrl}</a> : 'Entered manually'}</p></section>
+    <section><h2>Source</h2><p>{recipe.source.type === 'url' ? <a href={recipe.source.originalUrl} target="_blank" rel="noreferrer">Imported from {recipe.source.originalUrl}</a> : recipe.source.type === 'text' ? 'Imported from pasted recipe text' : 'Entered manually'}</p></section>
   </article>
 }

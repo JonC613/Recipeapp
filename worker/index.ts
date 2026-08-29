@@ -1,7 +1,7 @@
 import { jsonError } from './http.js'
 import { handleHealth } from './routes/health.js'
 import { handleFavorite, handleRecipes } from './routes/recipes.js'
-import { handleImport, handleImportApproval, handleUrlImport } from './routes/imports.js'
+import { handleImport, handleImportApproval, handleTextImport, handleUrlImport } from './routes/imports.js'
 
 export default {
   fetch(request, env) {
@@ -10,6 +10,7 @@ export default {
     if (pathname === '/api/health') return handleHealth(request, env)
     if (pathname === '/api/recipes') return handleRecipes(request, env)
     if (pathname === '/api/import/url' && request.method === 'POST') return handleUrlImport(request, env)
+    if (pathname === '/api/import/text' && request.method === 'POST') return handleTextImport(request, env)
     const approvalMatch = pathname.match(/^\/api\/import\/([^/]+)\/approve$/)
     if (approvalMatch) return handleImportApproval(request, env, approvalMatch[1])
     const importMatch = pathname.match(/^\/api\/import\/([^/]+)$/)

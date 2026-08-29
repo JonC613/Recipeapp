@@ -1,0 +1,65 @@
+openapi: 3.1.0
+info:
+  title: Recipeapp Text Import Contract
+  version: 1.0.0
+paths:
+  /api/import/text:
+    post:
+      summary: Extract one pasted recipe into a retained unsaved draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [text]
+              properties:
+                text: { type: string, minLength: 1, maxLength: 50000 }
+      responses:
+        "201":
+          description: Ready unsaved text import
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TextImport" }
+        "400":
+          description: Invalid request; no provider call
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PublicError" }
+        "422":
+          description: Not exactly one recipe; retained safe outcome
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PublicError" }
+        "503":
+          description: Extraction unavailable or invalid; retained safe outcome
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PublicError" }
+components:
+  schemas:
+    TextImport:
+      type: object
+      required: [id, sourceType, sourceText, status, draft, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        sourceType: { const: text }
+        sourceText: { type: string }
+        status: { const: ready }
+        draft:
+          type: object
+          description: Stable RecipeDraft, never raw provider output
+        createdAt: { type: string, format: date-time }
+    PublicError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, retryable]
+          properties:
+            code:
+              enum: [VALIDATION_ERROR, NO_RECIPE, MULTIPLE_RECIPES, INVALID_OUTPUT, SERVICE_UNAVAILABLE]
+            message: { type: string }
+            retryable: { type: boolean }

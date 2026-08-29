@@ -1,4 +1,4 @@
-export type PublicErrorCode = 'METHOD_NOT_ALLOWED' | 'NOT_FOUND' | 'SERVICE_UNAVAILABLE' | 'VALIDATION_ERROR' | 'NO_RECIPE' | 'CONFLICT'
+export type PublicErrorCode = 'METHOD_NOT_ALLOWED' | 'NOT_FOUND' | 'SERVICE_UNAVAILABLE' | 'VALIDATION_ERROR' | 'NO_RECIPE' | 'MULTIPLE_RECIPES' | 'INVALID_OUTPUT' | 'CONFLICT'
 
 export function jsonResponse(body: unknown, init: ResponseInit = {}): Response {
   const headers = new Headers(init.headers)
@@ -27,4 +27,9 @@ export function recipeNotFound(): Response {
 
 export function importError(code: 'INVALID_URL' | 'NO_RECIPE' | 'UNAVAILABLE', message: string): Response {
   return code === 'INVALID_URL' ? jsonError('VALIDATION_ERROR', message, false, 400) : code === 'NO_RECIPE' ? jsonError('NO_RECIPE', message, false, 422) : jsonError('SERVICE_UNAVAILABLE', message, true, 503)
+}
+export function textImportError(code: 'NO_RECIPE' | 'MULTIPLE_RECIPES' | 'INVALID_OUTPUT' | 'UNAVAILABLE', message: string): Response {
+  if (code === 'NO_RECIPE') return jsonError('NO_RECIPE', message, false, 422)
+  if (code === 'MULTIPLE_RECIPES') return jsonError('MULTIPLE_RECIPES', message, false, 422)
+  return jsonError(code === 'INVALID_OUTPUT' ? 'INVALID_OUTPUT' : 'SERVICE_UNAVAILABLE', message, code === 'UNAVAILABLE', 503)
 }

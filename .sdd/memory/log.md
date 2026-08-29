@@ -20,3 +20,7 @@
 - **Feature 004 update (approved):** Recorded the implemented review-and-save capability: editable
   ready drafts, explicit one-time approval into URL-sourced recipes, preserved immutable import
   provenance, and responsive approval and recovery journeys. Source: `specs/004-import-review/`.
+- **Feature 005 update (approved):** Recorded the implemented AI-assisted pasted-text import: bounded
+  text submission, one Worker-only structured extraction call, retained source and snapshot, safe
+  recovery outcomes, and explicit review/approval into text-sourced recipes. Source:
+  `specs/005-text-import/`.

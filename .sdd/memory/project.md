@@ -1,11 +1,11 @@
 ---
 type: Software Repository
 title: Recipeapp
-description: Personal, mobile-first Recipe Library application with locally validated manual recipes, deterministic URL imports, and explicit import review and saving.
+description: Personal, mobile-first Recipe Library application with locally validated manual recipes, deterministic URL imports, AI-assisted pasted-text imports, and explicit import review and saving.
 status: stable
-generated: {"by":"adaptive-sdd/0.3.0","at":"2026-08-29T08:16:46Z"}
+generated: {"by":"adaptive-sdd/0.3.0","at":"2026-08-29T18:00:00Z"}
 verified: [{"by":"human:owner","at":"2026-08-28T03:16:22Z"},{"by":"human:owner","at":"2026-08-29T08:16:46Z"}]
-sources: [{"id":"readme","resource":"../../README.md","title":"Repository README"},{"id":"foundation-spec","resource":"../../specs/001-foundation/spec.md","title":"Foundation specification"},{"id":"recipe-library-spec","resource":"../../specs/002-recipe-library/spec.md","title":"Recipe Library specification"},{"id":"url-import-spec","resource":"../../specs/003-url-import/spec.md","title":"URL Recipe Import specification"},{"id":"import-review-spec","resource":"../../specs/004-import-review/spec.md","title":"Import Review and Save specification"}]
+sources: [{"id":"readme","resource":"../../README.md","title":"Repository README"},{"id":"foundation-spec","resource":"../../specs/001-foundation/spec.md","title":"Foundation specification"},{"id":"recipe-library-spec","resource":"../../specs/002-recipe-library/spec.md","title":"Recipe Library specification"},{"id":"url-import-spec","resource":"../../specs/003-url-import/spec.md","title":"URL Recipe Import specification"},{"id":"import-review-spec","resource":"../../specs/004-import-review/spec.md","title":"Import Review and Save specification"},{"id":"text-import-spec","resource":"../../specs/005-text-import/spec.md","title":"Text Recipe Import specification"}]
 sdd: {"profile_version":1,"assumptions":[]}
 ---
 
@@ -14,9 +14,10 @@ sdd: {"profile_version":1,"assumptions":[]}
 ## Purpose
 
 Recipeapp is a personal recipe library intended to capture, review, store, find, and read recipes.
-Its current durable capability is a locally validated Recipe Library with manual recipes and
-deterministic URL-import drafts, and explicit review and save, built on the responsive application
-foundation, safe Worker error handling, and local Cloudflare binding simulation.
+Its current durable capability is a locally validated Recipe Library with manual recipes,
+deterministic URL-import drafts, and AI-assisted pasted-text drafts, with explicit review and save,
+built on the responsive application foundation, safe Worker error handling, and local Cloudflare
+binding simulation.
 
 ## Current capabilities
 
@@ -28,13 +29,18 @@ foundation, safe Worker error handling, and local Cloudflare binding simulation.
   recipe, reopen its retained import record, or safely recover to manual entry.
 - D1 preserves URL import attempts and their immutable source URL, status, safe failure code, and
   extraction snapshot separately from saved recipes; an approved import has one linked library recipe.
+- Cooks can paste one bounded block of recipe text to create an AI-extracted, unsaved draft, review and
+  correct it, and explicitly save one text-sourced recipe. D1 retains the original text and extraction
+  snapshot separately from the approved recipe, including safe failed-import outcomes.
 - Foundation UI, Worker health endpoint, and responsive recovery experiences remain implemented and
   locally validated. D1 and R2 bindings are configured; local development and tests use simulations.
 
 ## Boundaries
 
-- Text/PDF import, AI extraction, application authentication, and broader ingredient, tag, category,
-  or semantic search are not implemented. R2 is configured but unused by this feature.
+- PDF import, application authentication, and broader ingredient, tag, category, or semantic search are
+  not implemented. R2 is configured but unused by this feature.
+- Text extraction uses a Worker-only OpenAI credential and the configured `gpt-5-mini` default model;
+  local and automated tests use controlled doubles and make no paid provider calls.
 - Remote deployment is intentionally deferred. Before any remote deployment, an owner-controlled
   custom hostname, Cloudflare Access with an owner-restricted Allow policy, and separate deployment
   approval are required.

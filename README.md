@@ -22,6 +22,13 @@ from its import result link. Choose **Review and save** to correct the draft and
 library recipe; its original URL import stays unchanged, and Cancel leaves it unsaved. Local preview applies the committed
 D1 migration automatically; if recipe data looks stale, restart `npm run dev` or `npm run preview`.
 
+You can also paste one recipe as free-form text. Text import makes one explicit server-side extraction
+request, produces an unsaved draft, and always requires review before saving. Pasted text and the
+original extraction snapshot remain retained separately from the recipe you approve. Local automated
+tests use controlled parser doubles and do not make OpenAI requests. Keep `OPENAI_API_KEY` only in an
+ignored local `.env` variant; use `OPENAI_MODEL=gpt-5-mini` unless you deliberately evaluate another
+model. Do not place either value in browser-prefixed configuration or commit them.
+
 ## Validation
 
 ```powershell

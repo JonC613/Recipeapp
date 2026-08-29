@@ -8,7 +8,7 @@ export function ImportDraftSummary({ imported }: { imported: RecipeImport }) {
     <p className="eyebrow">Import draft</p>
     <h2 id="import-draft-title">{draft.title}</h2>
     {draft.description && <p className="recipe-description">{draft.description}</p>}
-    <p className="recipe-metadata">Source: <a href={draft.source.originalUrl} target="_blank" rel="noreferrer">{draft.source.originalUrl}</a></p>
+    <p className="recipe-metadata">Source: {draft.source.type === 'url' ? <a href={draft.source.originalUrl} target="_blank" rel="noreferrer">{draft.source.originalUrl}</a> : 'Pasted recipe text'}</p>
     {(draft.ingredients?.length ?? 0) > 0 && <section><h3>Ingredients</h3><ul>{draft.ingredients?.map((ingredient, index) => <li key={`${ingredient.originalText}-${index}`}>{ingredient.originalText}</li>)}</ul></section>}
     {(draft.instructions?.length ?? 0) > 0 && <section><h3>Instructions</h3><ol>{draft.instructions?.map((instruction, index) => <li key={`${instruction.text}-${index}`}>{instruction.text}</li>)}</ol></section>}
     <p className="hint">This is an unsaved draft. Review and save it when you are ready.</p>
