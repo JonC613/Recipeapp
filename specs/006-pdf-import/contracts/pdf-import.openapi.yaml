@@ -1,0 +1,34 @@
+openapi: 3.1.0
+info: { title: Recipeapp PDF Import API, version: 1.0.0 }
+paths:
+  /api/import/pdf:
+    post:
+      summary: Upload one PDF source and create an unsaved draft
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties: { file: { type: string, format: binary } }
+      responses:
+        '201': { description: Retained ready PDF import draft }
+        '400': { description: Invalid PDF or multipart upload }
+        '413': { description: PDF exceeds 20 MB }
+        '422': { description: PDF cannot yield exactly one usable recipe }
+        '503': { description: Storage, extraction, or parser temporarily unavailable }
+  /api/import/{importId}/ocr:
+    post:
+      summary: Explicitly use one OCR attempt for a retained image-only PDF import
+      parameters:
+        - name: importId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '201': { description: OCR and recipe parsing produced a retained ready draft }
+        '409': { description: OCR is unavailable for this import or was already attempted }
+        '413': { description: PDF exceeds the 10-page OCR limit }
+        '422': { description: OCR cannot yield exactly one usable recipe }
+        '503': { description: OCR provider or persistence is temporarily unavailable }

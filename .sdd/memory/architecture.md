@@ -1,11 +1,11 @@
 ---
 type: Software Architecture
 title: Recipeapp Recipe Library Architecture
-description: Current single-repository browser, Worker, D1 recipe/import review persistence, AI text extraction boundary, and Cloudflare binding architecture.
+description: Current single-repository browser, Worker, D1 recipe/import persistence, private R2 PDF storage, and bounded AI text/OCR architecture.
 status: stable
 generated: {"by":"adaptive-sdd/0.3.0","at":"2026-08-29T18:00:00Z"}
-verified: [{"by":"human:owner","at":"2026-08-28T03:16:22Z"},{"by":"human:owner","at":"2026-08-29T08:16:46Z"}]
-sources: [{"id":"recipe-library-plan","resource":"../../specs/002-recipe-library/plan.md","title":"Recipe Library implementation plan"},{"id":"url-import-plan","resource":"../../specs/003-url-import/plan.md","title":"URL Recipe Import implementation plan"},{"id":"import-review-plan","resource":"../../specs/004-import-review/plan.md","title":"Import Review and Save implementation plan"},{"id":"text-import-plan","resource":"../../specs/005-text-import/plan.md","title":"Text Recipe Import implementation plan"},{"id":"recipe-migration","resource":"../../migrations/0001_recipe_library.sql","title":"Recipe Library D1 migration"},{"id":"url-import-migration","resource":"../../migrations/0002_url_imports.sql","title":"URL import migration"},{"id":"import-approval-migration","resource":"../../migrations/0003_import_approvals.sql","title":"Import approval migration"},{"id":"text-import-migration","resource":"../../migrations/0004_text_imports.sql","title":"Text import migration"},{"id":"worker-config","resource":"../../wrangler.jsonc","title":"Worker configuration"},{"id":"package","resource":"../../package.json","title":"Project scripts and dependencies"}]
+verified: [{"by":"human:owner","at":"2026-08-28T03:16:22Z"},{"by":"human:owner","at":"2026-08-29T08:16:46Z"},{"by":"human:owner","at":"2026-08-30T01:47:45Z"}]
+sources: [{"id":"recipe-library-plan","resource":"../../specs/002-recipe-library/plan.md","title":"Recipe Library implementation plan"},{"id":"url-import-plan","resource":"../../specs/003-url-import/plan.md","title":"URL Recipe Import implementation plan"},{"id":"import-review-plan","resource":"../../specs/004-import-review/plan.md","title":"Import Review and Save implementation plan"},{"id":"text-import-plan","resource":"../../specs/005-text-import/plan.md","title":"Text Recipe Import implementation plan"},{"id":"pdf-import-plan","resource":"../../specs/006-pdf-import/plan.md","title":"PDF Recipe Import implementation plan"},{"id":"recipe-migration","resource":"../../migrations/0001_recipe_library.sql","title":"Recipe Library D1 migration"},{"id":"url-import-migration","resource":"../../migrations/0002_url_imports.sql","title":"URL import migration"},{"id":"import-approval-migration","resource":"../../migrations/0003_import_approvals.sql","title":"Import approval migration"},{"id":"text-import-migration","resource":"../../migrations/0004_text_imports.sql","title":"Text import migration"},{"id":"pdf-import-migration","resource":"../../migrations/0005_pdf_imports.sql","title":"PDF import migration"},{"id":"pdf-ocr-migration","resource":"../../migrations/0006_pdf_ocr_attempts.sql","title":"PDF OCR attempt migration"},{"id":"worker-config","resource":"../../wrangler.jsonc","title":"Worker configuration"},{"id":"package","resource":"../../package.json","title":"Project scripts and dependencies"}]
 sdd: {"profile_version":1,"assumptions":[]}
 ---
 
@@ -14,10 +14,11 @@ sdd: {"profile_version":1,"assumptions":[]}
 ## Components
 
 - React and Vite provide feature UI under `src/`; the shared app shell includes safe health recovery.
-- A Cloudflare Worker under `worker/` provides recipe CRUD, health, and URL-import routes under `/api`.
-- D1 binding `DB` holds recipes plus ordered ingredients, instructions, tags, and retained URL/text
+- A Cloudflare Worker under `worker/` provides recipe CRUD, health, and import routes under `/api`.
+- D1 binding `DB` holds recipes plus ordered ingredients, instructions, tags, and retained URL/text/PDF
   import attempts. Each approved import records a unique `approved_recipe_id`; the recipe schema
-  reserves an ownership column for future multi-user support. R2 binding `RECIPE_SOURCES` remains unused.
+  reserves an ownership column for future multi-user support. Private R2 binding `RECIPE_SOURCES`
+  retains original PDF source documents without exposing public object URLs.
 
 ## Relationships and flows
 
@@ -34,8 +35,18 @@ sdd: {"profile_version":1,"assumptions":[]}
   record. The Worker-only `RecipeParser` boundary uses the OpenAI Responses API with strict structured
   output; the browser never receives the API key or provider response payload. A ready text draft uses
   the same review/approval flow as URL imports and creates one text-sourced recipe.
+- PDF imports submit one multipart file to `POST /api/import/pdf`. The Worker validates MIME type,
+  `%PDF-` signature, and the 20 MB limit, stores the original in private R2, and uses the replaceable
+  `ContentExtractor` boundary for bounded deterministic embedded-text extraction. Usable text passes
+  through the existing `RecipeParser` and review/approval flow.
+- An unreadable retained scan exposes an explicit `POST /api/import/:id/ocr` action. The repository
+  atomically claims the import's only OCR attempt, the Worker retrieves the private R2 object, verifies
+  the 10-page limit, uploads a temporary one-hour `user_data` file to OpenAI, invokes Responses by
+  `file_id`, bounds the result, and attempts immediate provider-file deletion. Usable OCR text then
+  enters the same constrained parser and review boundary; safe terminal state is retained otherwise.
 - The public contract includes `GET /api/health` and `GET/POST/PUT/DELETE /api/recipes`, with
-  `PATCH /api/recipes/:id/favorite`, `POST /api/import/url`, `POST /api/import/text`, `GET /api/import/:importId`, and
+  `PATCH /api/recipes/:id/favorite`, `POST /api/import/url`, `POST /api/import/text`,
+  `POST /api/import/pdf`, `GET /api/import/:importId`, `POST /api/import/:importId/ocr`, and
   `POST /api/import/:importId/approve`; safe error responses are allow-listed.
 - Library title filtering uses a trimmed, case-insensitive, bound D1 query.
 - Verification spans React component tests, Worker tests, local binding integration tests, and
@@ -51,3 +62,8 @@ sdd: {"profile_version":1,"assumptions":[]}
 - Text-import failures expose allow-listed classifications and require an explicit retry; they never
   create a recipe or automatically make a second provider call. Provider boundaries remain inside the
   Worker; browser code never receives provider credentials.
+- PDF sources remain private in R2. PDF imports accept at most 20 MB, extracted/OCR text is bounded to
+  50,000 characters, and OCR accepts at most 10 pages and one atomically claimed attempt per import.
+- OCR is never automatic, never bypasses review, and never exposes provider credentials, raw provider
+  details, or public R2 URLs. Temporary provider files have a one-hour expiry fallback and immediate
+  cleanup is attempted after processing.

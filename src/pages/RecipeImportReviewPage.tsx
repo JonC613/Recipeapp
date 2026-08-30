@@ -10,5 +10,5 @@ export function RecipeImportReviewPage() {
   if (error) return <section className="recipe-page"><h1>Import unavailable</h1><p role="alert">{error}</p><Link to="/recipes/import">Import another recipe</Link><Link to="/">Return to library</Link></section>
   if (!imported) return <p role="status">Loading import draft…</p>
   if (imported.status !== 'ready' || !imported.draft || imported.approvedRecipeId) return <section className="recipe-page"><h1>Import unavailable for review</h1><p role="alert">This import cannot be saved again.</p><Link to="/recipes/import">Import another recipe</Link><Link to="/">Return to library</Link></section>
-  return <section className="recipe-page"><p className="eyebrow">Review import</p><h1>Review and save</h1><ImportReviewForm imported={imported} onSave={async (input) => { const saved = await approveRecipeImport(imported.id, input); await navigate(`/recipes/${saved.id}`) }} /><Link to={`/imports/${imported.id}`}>Cancel</Link></section>
+  return <section className="recipe-page"><p className="eyebrow">Review {imported.sourceType === 'pdf' ? 'PDF import' : 'import'}</p><h1>Review and save</h1><ImportReviewForm imported={imported} onSave={async (input) => { const saved = await approveRecipeImport(imported.id, input); await navigate(`/recipes/${saved.id}`) }} /><Link to={`/imports/${imported.id}`}>Cancel</Link></section>
 }

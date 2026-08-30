@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS recipe_ingredients (id TEXT PRIMARY KEY, recipe_id TE
 CREATE TABLE IF NOT EXISTS recipe_instructions (id TEXT PRIMARY KEY, recipe_id TEXT NOT NULL REFERENCES recipes(id) ON DELETE CASCADE, step_number INTEGER NOT NULL, text TEXT NOT NULL, UNIQUE(recipe_id, step_number));
 CREATE TABLE IF NOT EXISTS recipe_tags (recipe_id TEXT NOT NULL REFERENCES recipes(id) ON DELETE CASCADE, tag TEXT NOT NULL, PRIMARY KEY(recipe_id, tag));
 CREATE INDEX IF NOT EXISTS recipes_title_index ON recipes(title COLLATE NOCASE);
-CREATE TABLE IF NOT EXISTS recipe_imports (id TEXT PRIMARY KEY, source_type TEXT NOT NULL CHECK (source_type IN ('url', 'text')), source_url TEXT, raw_text TEXT, parsed_recipe_json TEXT, status TEXT NOT NULL CHECK (status IN ('ready', 'failed', 'no_recipe')), failure_code TEXT, created_at TEXT NOT NULL, approved_recipe_id TEXT);
+CREATE TABLE IF NOT EXISTS recipe_imports (id TEXT PRIMARY KEY, source_type TEXT NOT NULL CHECK (source_type IN ('url', 'text', 'pdf')), source_url TEXT, source_r2_key TEXT, source_name TEXT, raw_text TEXT, parsed_recipe_json TEXT, status TEXT NOT NULL CHECK (status IN ('ready', 'failed', 'no_recipe')), failure_code TEXT, ocr_status TEXT CHECK (ocr_status IN ('available', 'attempted', 'succeeded', 'failed', 'page_limit')), ocr_attempted_at TEXT, ocr_failure_code TEXT, extraction_method TEXT CHECK (extraction_method IN ('embedded_text', 'ocr')), created_at TEXT NOT NULL, approved_recipe_id TEXT);
 CREATE INDEX IF NOT EXISTS recipe_imports_created_at_index ON recipe_imports(created_at DESC);
 `
 

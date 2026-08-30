@@ -24,3 +24,8 @@
   text submission, one Worker-only structured extraction call, retained source and snapshot, safe
   recovery outcomes, and explicit review/approval into text-sourced recipes. Source:
   `specs/005-text-import/`.
+- **Feature 006 update (approved):** Recorded retained PDF imports with private R2 source storage,
+  bounded deterministic text extraction, explicit one-attempt OCR for image-only PDFs, temporary
+  provider-file cleanup, safe recovery outcomes, and review/approval into PDF-sourced recipes. Build,
+  type, lint, unit, Worker, integration, and 54 responsive end-to-end checks passed. Source:
+  `specs/006-pdf-import/`.

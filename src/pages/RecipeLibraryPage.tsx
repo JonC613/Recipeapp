@@ -5,7 +5,12 @@ import { listRecipes, type RecipeSummary } from '../services/recipes'
 
 export function RecipeLibraryPage() {
   const [recipes, setRecipes] = useState<RecipeSummary[]>([]); const [error, setError] = useState<string>(); const [query, setQuery] = useState('')
-  useEffect(() => { void listRecipes(query).then(setRecipes).catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'Could not load recipes.')) }, [query])
+  useEffect(() => {
+    let current = true
+    setError(undefined)
+    void listRecipes(query).then((result) => { if (current) setRecipes(result) }).catch((cause: unknown) => { if (current) setError(cause instanceof Error ? cause.message : 'Could not load recipes.') })
+    return () => { current = false }
+  }, [query])
   return <section className="recipe-page"><div className="page-heading"><div><p className="eyebrow">Your personal kitchen archive</p><h1>Recipe Library</h1></div><Link className="button-link" to="/recipes/new">Add recipe</Link></div>
     <label className="recipe-filter">Filter by title<input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search recipe titles" />{query && <button type="button" onClick={() => setQuery('')}>Clear filter</button>}</label>
     {error && <p role="alert">{error}</p>}

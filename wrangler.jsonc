@@ -35,7 +35,8 @@
 		"required": ["OPENAI_API_KEY"]
 	},
 	"vars": {
-		"OPENAI_MODEL": "gpt-5-mini"
+		"OPENAI_MODEL": "gpt-5-mini",
+		"OPENAI_OCR_MODEL": "gpt-5-mini"
 	}
 	/**
 	 * Smart Placement
