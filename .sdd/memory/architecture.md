@@ -1,11 +1,11 @@
 ---
 type: Software Architecture
 title: Recipeapp Recipe Library Architecture
-description: Current single-repository browser, Worker, D1 recipe/import persistence, private R2 PDF storage, and bounded AI text/OCR architecture.
+description: Current single-repository browser, Worker, D1 recipe/import persistence and traditional recipe-search architecture, private R2 PDF storage, and bounded AI text/OCR architecture.
 status: stable
 generated: {"by":"adaptive-sdd/0.3.0","at":"2026-08-29T18:00:00Z"}
-verified: [{"by":"human:owner","at":"2026-08-28T03:16:22Z"},{"by":"human:owner","at":"2026-08-29T08:16:46Z"},{"by":"human:owner","at":"2026-08-30T01:47:45Z"}]
-sources: [{"id":"recipe-library-plan","resource":"../../specs/002-recipe-library/plan.md","title":"Recipe Library implementation plan"},{"id":"url-import-plan","resource":"../../specs/003-url-import/plan.md","title":"URL Recipe Import implementation plan"},{"id":"import-review-plan","resource":"../../specs/004-import-review/plan.md","title":"Import Review and Save implementation plan"},{"id":"text-import-plan","resource":"../../specs/005-text-import/plan.md","title":"Text Recipe Import implementation plan"},{"id":"pdf-import-plan","resource":"../../specs/006-pdf-import/plan.md","title":"PDF Recipe Import implementation plan"},{"id":"recipe-migration","resource":"../../migrations/0001_recipe_library.sql","title":"Recipe Library D1 migration"},{"id":"url-import-migration","resource":"../../migrations/0002_url_imports.sql","title":"URL import migration"},{"id":"import-approval-migration","resource":"../../migrations/0003_import_approvals.sql","title":"Import approval migration"},{"id":"text-import-migration","resource":"../../migrations/0004_text_imports.sql","title":"Text import migration"},{"id":"pdf-import-migration","resource":"../../migrations/0005_pdf_imports.sql","title":"PDF import migration"},{"id":"pdf-ocr-migration","resource":"../../migrations/0006_pdf_ocr_attempts.sql","title":"PDF OCR attempt migration"},{"id":"worker-config","resource":"../../wrangler.jsonc","title":"Worker configuration"},{"id":"package","resource":"../../package.json","title":"Project scripts and dependencies"}]
+verified: [{"by":"human:owner","at":"2026-08-28T03:16:22Z"},{"by":"human:owner","at":"2026-08-29T08:16:46Z"},{"by":"human:owner","at":"2026-08-30T01:47:45Z"},{"by":"human:owner","at":"2026-08-30T05:51:22Z"}]
+sources: [{"id":"recipe-library-plan","resource":"../../specs/002-recipe-library/plan.md","title":"Recipe Library implementation plan"},{"id":"url-import-plan","resource":"../../specs/003-url-import/plan.md","title":"URL Recipe Import implementation plan"},{"id":"import-review-plan","resource":"../../specs/004-import-review/plan.md","title":"Import Review and Save implementation plan"},{"id":"text-import-plan","resource":"../../specs/005-text-import/plan.md","title":"Text Recipe Import implementation plan"},{"id":"pdf-import-plan","resource":"../../specs/006-pdf-import/plan.md","title":"PDF Recipe Import implementation plan"},{"id":"recipe-search-plan","resource":"../../specs/007-recipe-search/plan.md","title":"Recipe Search implementation plan"},{"id":"recipe-migration","resource":"../../migrations/0001_recipe_library.sql","title":"Recipe Library D1 migration"},{"id":"url-import-migration","resource":"../../migrations/0002_url_imports.sql","title":"URL import migration"},{"id":"import-approval-migration","resource":"../../migrations/0003_import_approvals.sql","title":"Import approval migration"},{"id":"text-import-migration","resource":"../../migrations/0004_text_imports.sql","title":"Text import migration"},{"id":"pdf-import-migration","resource":"../../migrations/0005_pdf_imports.sql","title":"PDF import migration"},{"id":"pdf-ocr-migration","resource":"../../migrations/0006_pdf_ocr_attempts.sql","title":"PDF OCR attempt migration"},{"id":"worker-config","resource":"../../wrangler.jsonc","title":"Worker configuration"},{"id":"package","resource":"../../package.json","title":"Project scripts and dependencies"}]
 sdd: {"profile_version":1,"assumptions":[]}
 ---
 
@@ -44,11 +44,17 @@ sdd: {"profile_version":1,"assumptions":[]}
   the 10-page limit, uploads a temporary one-hour `user_data` file to OpenAI, invokes Responses by
   `file_id`, bounds the result, and attempts immediate provider-file deletion. Usable OCR text then
   enters the same constrained parser and review boundary; safe terminal state is retained otherwise.
+- The Recipe Library submits a typed transient criteria object to `GET /api/recipes`. The Worker trims and
+  normalizes text, accepts only boolean favorite values, and passes criteria to the D1 repository. The
+  repository uses bound, case-insensitive clauses over saved recipe, ingredient, and tag records; every
+  active criterion is conjunctive and a recipe appears at most once, ordered by its existing update time.
 - The public contract includes `GET /api/health` and `GET/POST/PUT/DELETE /api/recipes`, with
   `PATCH /api/recipes/:id/favorite`, `POST /api/import/url`, `POST /api/import/text`,
   `POST /api/import/pdf`, `GET /api/import/:importId`, `POST /api/import/:importId/ocr`, and
   `POST /api/import/:importId/approve`; safe error responses are allow-listed.
-- Library title filtering uses a trimmed, case-insensitive, bound D1 query.
+- `GET /api/recipes` accepts optional `q`, `favorite`, `tag`, `ingredient`, `cuisine`, and `category`
+  criteria. Its response remains a safe recipe-summary projection and never includes import, source,
+  provider, or private R2 data for search.
 - Verification spans React component tests, Worker tests, local binding integration tests, and
   Playwright responsive journeys at 320, 768, and 1440 CSS pixels.
 
@@ -67,3 +73,6 @@ sdd: {"profile_version":1,"assumptions":[]}
 - OCR is never automatic, never bypasses review, and never exposes provider credentials, raw provider
   details, or public R2 URLs. Temporary provider files have a one-hour expiry fallback and immediate
   cleanup is attempted after processing.
+- Search is traditional and read-only: it makes no AI calls, does not alter recipes, and has no semantic,
+  vector, ranking, or conversational-search infrastructure. The typed criteria boundary preserves a
+  replacement point for a later approved search provider.

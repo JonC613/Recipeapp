@@ -29,3 +29,7 @@
   provider-file cleanup, safe recovery outcomes, and review/approval into PDF-sourced recipes. Build,
   type, lint, unit, Worker, integration, and 54 responsive end-to-end checks passed. Source:
   `specs/006-pdf-import/`.
+- **Feature 007 update (approved):** Recorded traditional saved-recipe search across title, ingredients,
+  tags, cuisine, and category; conjunctive favorite and field filters; safe summary-only results; and no
+  schema migration, AI call, or semantic/vector infrastructure. Build, Cloudflare type, lint, component,
+  Worker, integration, and 57 responsive end-to-end checks passed. Source: `specs/007-recipe-search/`.

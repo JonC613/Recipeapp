@@ -53,7 +53,7 @@ test('edits, favorites, and deliberately deletes a recipe', async ({ page }, tes
   await expect(page.getByRole('link', { name: 'Return to library' })).toBeVisible()
 })
 
-test('filters recipe titles and clears a no-match result', async ({ page }, testInfo) => {
+test('searches recipe titles and clears a no-match result', async ({ page }, testInfo) => {
   const chickenTitle = `Skillet Chicken ${testInfo.project.name} ${Date.now()}`
   const saladTitle = `Garden Salad ${testInfo.project.name} ${Date.now()}`
   for (const title of [chickenTitle, saladTitle]) {
@@ -63,13 +63,13 @@ test('filters recipe titles and clears a no-match result', async ({ page }, test
   }
 
   await page.goto('/')
-  const filter = page.getByRole('searchbox', { name: 'Filter by title' })
+  const filter = page.getByRole('searchbox', { name: 'Search recipes' })
   await filter.fill('  cHiCkEn  ')
   await expect(page.getByRole('link', { name: chickenTitle })).toBeVisible()
   await expect(page.getByRole('link', { name: saladTitle })).toHaveCount(0)
   await filter.fill('lasagna')
-  await expect(page.getByText('No recipes match that title.')).toBeVisible()
-  await page.getByRole('button', { name: 'Clear filter' }).click()
+  await expect(page.getByText('No recipes match your search or filters.')).toBeVisible()
+  await page.getByRole('button', { name: 'Clear search and filters' }).click()
   await expect(page.getByRole('link', { name: chickenTitle })).toBeVisible()
   await expect(page.getByRole('link', { name: saladTitle })).toBeVisible()
   await expect(page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).resolves.toBe(true)

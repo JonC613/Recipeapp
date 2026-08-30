@@ -1,4 +1,7 @@
 import type { ManualRecipeInput, RecipeIngredientInput, RecipeInstructionInput, RecipeSource } from '../domain/recipe/schema.js'
+import type { RecipeSearchCriteria } from '../domain/recipe/search.js'
+
+export type { RecipeSearchCriteria } from '../domain/recipe/search.js'
 
 export interface RecipeSummary { id: string; title: string; favorite: boolean; prepMinutes?: number; cookMinutes?: number; category?: string }
 export interface Recipe extends RecipeSummary, ManualRecipeInput {
@@ -19,9 +22,14 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return response.json() as Promise<T>
 }
 
-export function listRecipes(query?: string): Promise<RecipeSummary[]> {
-  const trimmed = query?.trim()
-  return request(trimmed ? `/api/recipes?q=${encodeURIComponent(trimmed)}` : '/api/recipes')
+export function listRecipes(criteria: RecipeSearchCriteria = {}): Promise<RecipeSummary[]> {
+  const params = new URLSearchParams()
+  for (const [key, value] of Object.entries(criteria)) {
+    if (typeof value === 'boolean') params.set(key, String(value))
+    else if (value?.trim()) params.set(key, value.trim())
+  }
+  const query = params.toString()
+  return request(query ? `/api/recipes?${query}` : '/api/recipes')
 }
 export function getRecipe(id: string): Promise<Recipe> { return request(`/api/recipes/${encodeURIComponent(id)}`) }
 export function createRecipe(recipe: ManualRecipeInput): Promise<Recipe> {

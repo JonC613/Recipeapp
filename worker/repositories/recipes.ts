@@ -1,4 +1,5 @@
 import type { NormalizedManualRecipe, RecipeSource } from '../../src/domain/recipe/schema.js'
+import type { RecipeSearchCriteria } from '../../src/domain/recipe/search.js'
 
 export interface StoredRecipe extends NormalizedManualRecipe {
   id: string
@@ -40,15 +41,23 @@ export async function createRecipe(db: D1Database, recipe: NormalizedManualRecip
   return (await getRecipe(db, id))!
 }
 
-export async function listRecipes(db: D1Database, titleQuery?: string): Promise<Array<Pick<StoredRecipe, 'id' | 'title' | 'favorite' | 'prepMinutes' | 'cookMinutes' | 'category' | 'updatedAt'>>> {
-  const statement = titleQuery
-    ? db.prepare('SELECT id, title, favorite, prep_minutes, cook_minutes, category, updated_at FROM recipes WHERE title LIKE ? COLLATE NOCASE ORDER BY updated_at DESC').bind(`%${titleQuery}%`)
-    : db.prepare('SELECT id, title, favorite, prep_minutes, cook_minutes, category, updated_at FROM recipes ORDER BY updated_at DESC')
-  const { results } = await statement.all<RecipeRow>()
-  return results.map((row) => {
-    const recipe = mapRecipe(row)
-    return { id: recipe.id, title: recipe.title, favorite: recipe.favorite, prepMinutes: recipe.prepMinutes, cookMinutes: recipe.cookMinutes, category: recipe.category, updatedAt: recipe.updatedAt }
-  })
+export async function listRecipes(db: D1Database, criteria: RecipeSearchCriteria = {}): Promise<Array<Pick<StoredRecipe, 'id' | 'title' | 'favorite' | 'prepMinutes' | 'cookMinutes' | 'category' | 'updatedAt'>>> {
+  const clauses: string[] = []
+  const values: Array<string | number> = []
+  const match = (value: string) => `%${value}%`
+  if (criteria.q) {
+    const value = match(criteria.q)
+    clauses.push(`(r.title LIKE ? COLLATE NOCASE OR r.cuisine LIKE ? COLLATE NOCASE OR r.category LIKE ? COLLATE NOCASE OR EXISTS (SELECT 1 FROM recipe_ingredients ri WHERE ri.recipe_id = r.id AND (ri.original_text LIKE ? COLLATE NOCASE OR ri.ingredient LIKE ? COLLATE NOCASE)) OR EXISTS (SELECT 1 FROM recipe_tags rt WHERE rt.recipe_id = r.id AND rt.tag LIKE ? COLLATE NOCASE))`)
+    values.push(value, value, value, value, value, value)
+  }
+  if (criteria.favorite !== undefined) { clauses.push('r.favorite = ?'); values.push(criteria.favorite ? 1 : 0) }
+  if (criteria.tag) { clauses.push('EXISTS (SELECT 1 FROM recipe_tags rt WHERE rt.recipe_id = r.id AND rt.tag LIKE ? COLLATE NOCASE)'); values.push(match(criteria.tag)) }
+  if (criteria.ingredient) { clauses.push('EXISTS (SELECT 1 FROM recipe_ingredients ri WHERE ri.recipe_id = r.id AND (ri.original_text LIKE ? COLLATE NOCASE OR ri.ingredient LIKE ? COLLATE NOCASE))'); values.push(match(criteria.ingredient), match(criteria.ingredient)) }
+  if (criteria.cuisine) { clauses.push('r.cuisine LIKE ? COLLATE NOCASE'); values.push(match(criteria.cuisine)) }
+  if (criteria.category) { clauses.push('r.category LIKE ? COLLATE NOCASE'); values.push(match(criteria.category)) }
+  const where = clauses.length ? ` WHERE ${clauses.join(' AND ')}` : ''
+  const { results } = await db.prepare(`SELECT r.id, r.title, r.favorite, r.prep_minutes, r.cook_minutes, r.category, r.updated_at FROM recipes r${where} ORDER BY r.updated_at DESC`).bind(...values).all<{ id: string; title: string; favorite: number; prep_minutes: number | null; cook_minutes: number | null; category: string | null; updated_at: string }>()
+  return results.map((row) => ({ id: row.id, title: row.title, favorite: row.favorite === 1, prepMinutes: row.prep_minutes ?? undefined, cookMinutes: row.cook_minutes ?? undefined, category: row.category ?? undefined, updatedAt: row.updated_at }))
 }
 
 export async function getRecipe(db: D1Database, id: string): Promise<StoredRecipe | undefined> {
