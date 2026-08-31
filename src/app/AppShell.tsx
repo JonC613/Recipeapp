@@ -11,7 +11,10 @@ export function AppShell() {
     <header className="site-header">
       <div className="site-header__content">
         <NavLink className="brand" to="/" end>Recipe Library</NavLink>
-        <nav aria-label="Primary navigation"><NavLink to="/" end>Library</NavLink></nav>
+        <nav aria-label="Primary navigation">
+          <NavLink to="/" end>Library</NavLink>
+          <NavLink to="/recipes/import">Import</NavLink>
+        </nav>
       </div>
     </header>
     <main id="main-content" tabIndex={-1}>{availability.state === 'unavailable' && <div className="service-status service-status--unavailable" role="alert"><p>{availability.message}</p><button type="button" onClick={() => void refreshHealth()}>Retry</button></div>}<Outlet /></main>

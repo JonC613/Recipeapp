@@ -29,6 +29,7 @@ test('renders an accessible Recipe Library shell', async () => {
   await expect.element(screen.getByRole('main')).toBeVisible()
   await expect.element(screen.getByRole('heading', { name: 'Recipe Library' })).toBeVisible()
   await expect.element(screen.getByRole('link', { name: 'Skip to main content' })).toBeVisible()
+  await expect.element(screen.getByRole('link', { name: 'Import' })).toBeVisible()
 })
 
 test('shows a route-specific not-found recovery page', async () => {
