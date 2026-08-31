@@ -23,7 +23,7 @@ export interface ManualRecipeInput {
   instructions?: RecipeInstructionInput[]
 }
 export interface ReviewRecipeInput extends ManualRecipeInput { favorite?: boolean }
-export type RecipeSource = { type: 'manual' } | { type: 'url'; originalUrl: string } | { type: 'text' } | { type: 'pdf'; sourceName?: string; r2ObjectKey: string }
+export type RecipeSource = { type: 'manual' } | { type: 'url'; originalUrl: string } | { type: 'text' } | { type: 'pdf'; sourceName?: string; r2ObjectKey: string } | { type: 'image'; sourceName?: string; r2ObjectKey: string }
 export interface NormalizedManualRecipe extends Omit<ManualRecipeInput, 'tags' | 'ingredients' | 'instructions'> {
   tags: string[]
   ingredients: Array<RecipeIngredientInput & { position: number }>

@@ -33,3 +33,13 @@
   tags, cuisine, and category; conjunctive favorite and field filters; safe summary-only results; and no
   schema migration, AI call, or semantic/vector infrastructure. Build, Cloudflare type, lint, component,
   Worker, integration, and 57 responsive end-to-end checks passed. Source: `specs/007-recipe-search/`.
+
+## 2026-08-31
+
+- **Feature 008 update (approved):** Recorded the deployed owner-protected Cloudflare architecture:
+  custom hostname behind Cloudflare Access, Worker-only secrets, production D1, and private R2. Source:
+  `specs/008-secure-deployment/`.
+- **Feature 009 update (approved):** Recorded the repository implementation of Worker-owned TheMealDB
+  browse, search, preview, explicit import, review, and save; immutable `mealdb` import history; and
+  canonical URL mapping for approved recipes. The code is fully locally tested but deployment remains a
+  separate approval. Source: `specs/009-mealdb-browse-import/`.

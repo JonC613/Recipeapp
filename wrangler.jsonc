@@ -33,6 +33,9 @@
 			"bucket_name": "recipeapp-sources"
 		}
 	],
+	"images": {
+		"binding": "IMAGES"
+	},
 	"observability": {
 		"enabled": true
 	},

@@ -1,11 +1,11 @@
 ---
 type: Software Architecture
 title: Recipeapp Recipe Library Architecture
-description: Current single-repository browser, Worker, D1 recipe/import persistence and traditional recipe-search architecture, private R2 PDF storage, and bounded AI text/OCR architecture.
+description: Current single-repository browser, Worker, D1 import persistence, owner-protected Cloudflare deployment, private R2 PDF storage, bounded AI text/OCR, and Worker-owned TheMealDB browse/import architecture.
 status: stable
-generated: {"by":"adaptive-sdd/0.3.0","at":"2026-08-29T18:00:00Z"}
+generated: {"by":"adaptive-sdd/0.3.0","at":"2026-08-31T01:42:06Z"}
 verified: [{"by":"human:owner","at":"2026-08-28T03:16:22Z"},{"by":"human:owner","at":"2026-08-29T08:16:46Z"},{"by":"human:owner","at":"2026-08-30T01:47:45Z"},{"by":"human:owner","at":"2026-08-30T05:51:22Z"}]
-sources: [{"id":"recipe-library-plan","resource":"../../specs/002-recipe-library/plan.md","title":"Recipe Library implementation plan"},{"id":"url-import-plan","resource":"../../specs/003-url-import/plan.md","title":"URL Recipe Import implementation plan"},{"id":"import-review-plan","resource":"../../specs/004-import-review/plan.md","title":"Import Review and Save implementation plan"},{"id":"text-import-plan","resource":"../../specs/005-text-import/plan.md","title":"Text Recipe Import implementation plan"},{"id":"pdf-import-plan","resource":"../../specs/006-pdf-import/plan.md","title":"PDF Recipe Import implementation plan"},{"id":"recipe-search-plan","resource":"../../specs/007-recipe-search/plan.md","title":"Recipe Search implementation plan"},{"id":"recipe-migration","resource":"../../migrations/0001_recipe_library.sql","title":"Recipe Library D1 migration"},{"id":"url-import-migration","resource":"../../migrations/0002_url_imports.sql","title":"URL import migration"},{"id":"import-approval-migration","resource":"../../migrations/0003_import_approvals.sql","title":"Import approval migration"},{"id":"text-import-migration","resource":"../../migrations/0004_text_imports.sql","title":"Text import migration"},{"id":"pdf-import-migration","resource":"../../migrations/0005_pdf_imports.sql","title":"PDF import migration"},{"id":"pdf-ocr-migration","resource":"../../migrations/0006_pdf_ocr_attempts.sql","title":"PDF OCR attempt migration"},{"id":"worker-config","resource":"../../wrangler.jsonc","title":"Worker configuration"},{"id":"package","resource":"../../package.json","title":"Project scripts and dependencies"}]
+sources: [{"id":"recipe-library-plan","resource":"../../specs/002-recipe-library/plan.md","title":"Recipe Library implementation plan"},{"id":"url-import-plan","resource":"../../specs/003-url-import/plan.md","title":"URL Recipe Import implementation plan"},{"id":"import-review-plan","resource":"../../specs/004-import-review/plan.md","title":"Import Review and Save implementation plan"},{"id":"text-import-plan","resource":"../../specs/005-text-import/plan.md","title":"Text Recipe Import implementation plan"},{"id":"pdf-import-plan","resource":"../../specs/006-pdf-import/plan.md","title":"PDF Recipe Import implementation plan"},{"id":"recipe-search-plan","resource":"../../specs/007-recipe-search/plan.md","title":"Recipe Search implementation plan"},{"id":"secure-deployment-plan","resource":"../../specs/008-secure-deployment/plan.md","title":"Secure Cloudflare deployment plan"},{"id":"mealdb-plan","resource":"../../specs/009-mealdb-browse-import/plan.md","title":"TheMealDB browse and import plan"},{"id":"recipe-migration","resource":"../../migrations/0001_recipe_library.sql","title":"Recipe Library D1 migration"},{"id":"url-import-migration","resource":"../../migrations/0002_url_imports.sql","title":"URL import migration"},{"id":"import-approval-migration","resource":"../../migrations/0003_import_approvals.sql","title":"Import approval migration"},{"id":"text-import-migration","resource":"../../migrations/0004_text_imports.sql","title":"Text import migration"},{"id":"pdf-import-migration","resource":"../../migrations/0005_pdf_imports.sql","title":"PDF import migration"},{"id":"pdf-ocr-migration","resource":"../../migrations/0006_pdf_ocr_attempts.sql","title":"PDF OCR attempt migration"},{"id":"mealdb-import-migration","resource":"../../migrations/0007_mealdb_imports.sql","title":"TheMealDB import migration"},{"id":"worker-config","resource":"../../wrangler.jsonc","title":"Worker configuration"},{"id":"package","resource":"../../package.json","title":"Project scripts and dependencies"}]
 sdd: {"profile_version":1,"assumptions":[]}
 ---
 
@@ -23,6 +23,8 @@ sdd: {"profile_version":1,"assumptions":[]}
 ## Relationships and flows
 
 - Cloudflare Static Assets serves the SPA, while `/api` and `/api/*` execute Worker-first.
+- The public application hostname is protected by Cloudflare Access with an owner-only Allow policy;
+  direct provider endpoints are disabled and all browser API calls remain behind the Worker.
 - Manual create/edit flows submit through typed browser services to the Worker, which validates the
   stable recipe domain before replacing or creating ordered D1 child records.
 - URL imports submit through typed browser services to an application-owned Worker fetcher that
@@ -48,6 +50,10 @@ sdd: {"profile_version":1,"assumptions":[]}
   normalizes text, accepts only boolean favorite values, and passes criteria to the D1 repository. The
   repository uses bound, case-insensitive clauses over saved recipe, ingredient, and tag records; every
   active criterion is conjunctive and a recipe appears at most once, ordered by its existing update time.
+- TheMealDB browse, search, and preview requests use a Worker-owned client that returns validated,
+  bounded application DTOs and creates no D1 state. `POST /api/import/mealdb` is the only persistent
+  provider action: it stores an immutable normalized `mealdb` import snapshot and opens existing review.
+  Approval saves the canonical TheMealDB URL through the pre-existing recipe `url` source shape.
 - The public contract includes `GET /api/health` and `GET/POST/PUT/DELETE /api/recipes`, with
   `PATCH /api/recipes/:id/favorite`, `POST /api/import/url`, `POST /api/import/text`,
   `POST /api/import/pdf`, `GET /api/import/:importId`, `POST /api/import/:importId/ocr`, and
@@ -55,6 +61,9 @@ sdd: {"profile_version":1,"assumptions":[]}
 - `GET /api/recipes` accepts optional `q`, `favorite`, `tag`, `ingredient`, `cuisine`, and `category`
   criteria. Its response remains a safe recipe-summary projection and never includes import, source,
   provider, or private R2 data for search.
+- The Feature 009 repository implementation adds `GET /api/mealdb/categories`, `GET /api/mealdb/areas`,
+  `GET /api/mealdb/recipes`, `GET /api/mealdb/search`, `GET /api/mealdb/recipes/:providerId`, and
+  `POST /api/import/mealdb`. It is tested locally but has not yet been deployed.
 - Verification spans React component tests, Worker tests, local binding integration tests, and
   Playwright responsive journeys at 320, 768, and 1440 CSS pixels.
 
@@ -76,3 +85,6 @@ sdd: {"profile_version":1,"assumptions":[]}
 - Search is traditional and read-only: it makes no AI calls, does not alter recipes, and has no semantic,
   vector, ranking, or conversational-search infrastructure. The typed criteria boundary preserves a
   replacement point for a later approved search provider.
+- TheMealDB provider client makes server-side official API requests only, does not expose raw upstream
+  payloads or provider credentials, makes no AI call, and never auto-saves. Its `recipe_imports` history
+  uses `mealdb` while approved recipes retain the existing URL-source persistence shape.

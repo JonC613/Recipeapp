@@ -4,6 +4,8 @@
 
 **Input**: Approved Feature 009 specification.
 
+**Status**: Done — 2026-08-31
+
 ## Summary
 
 Add a small provider-backed import source to Recipeapp. The owner can browse TheMealDB by category or
@@ -74,6 +76,12 @@ raw provider response.
 Add `mealdb` as a supported import source through a committed D1 migration and domain/repository updates.
 The saved approved recipe uses the existing Recipe schema and source display, with TheMealDB attribution
 and selected provider reference. No AI parser, R2 object, or new Recipe table is needed.
+
+**Implementation discovery**: `recipe_imports.source_type` retains the explicit `mealdb` value and the
+immutable normalized provider draft. On approval, the stable saved-recipe source continues to use the
+existing `url` persistence shape with the canonical `https://www.themealdb.com/meal/<id>` reference.
+This keeps current recipe queries and constraints stable while preserving provider provenance in the
+import audit record.
 
 ### 4. Official API access only
 

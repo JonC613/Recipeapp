@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-30
 
-**Status**: Approved — 2026-08-30
+**Status**: Done — 2026-08-31
 
 **Input**: User description: "Create an MVP that lets the owner browse TheMealDB recipes and save an
 approved copy to Recipeapp."

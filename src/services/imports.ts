@@ -4,6 +4,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> { const 
 export function importRecipeUrl(url: string): Promise<RecipeImport> { return request('/api/import/url', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url }) }) }
 export function importRecipeText(text: string): Promise<RecipeImport> { return request('/api/import/text', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text }) }) }
 export function importRecipePdf(file: File): Promise<RecipeImport> { const body = new FormData(); body.set('file', file); return request('/api/import/pdf', { method: 'POST', body }) }
+export function importRecipeImage(file: File): Promise<RecipeImport> { const body = new FormData(); body.set('file', file); return request('/api/import/image', { method: 'POST', body }) }
+export function extractRecipeImage(importId: string): Promise<RecipeImport> { return request(`/api/import/${encodeURIComponent(importId)}/extract-image`, { method: 'POST' }) }
 export function runPdfOcr(importId: string): Promise<RecipeImport> { return request(`/api/import/${encodeURIComponent(importId)}/ocr`, { method: 'POST' }) }
 export function getRecipeImport(importId: string): Promise<RecipeImport> { return request(`/api/import/${encodeURIComponent(importId)}`) }
 export function approveRecipeImport(importId: string, input: ImportApprovalInput): Promise<Recipe> { return request(`/api/import/${encodeURIComponent(importId)}/approve`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input) }) }

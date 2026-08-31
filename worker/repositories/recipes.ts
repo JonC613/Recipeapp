@@ -13,7 +13,7 @@ type RecipeRow = {
   id: string; title: string; description: string | null; servings: number | null
   prep_minutes: number | null; cook_minutes: number | null; total_minutes: number | null
   cuisine: string | null; category: string | null; notes: string | null; favorite: number
-  source_type: 'manual' | 'url' | 'text' | 'pdf'; source_url: string | null; source_name: string | null; source_r2_key: string | null; created_at: string; updated_at: string
+  source_type: 'manual' | 'url' | 'text' | 'pdf' | 'image'; source_url: string | null; source_name: string | null; source_r2_key: string | null; created_at: string; updated_at: string
 }
 
 function mapRecipe(row: RecipeRow): Omit<StoredRecipe, 'ingredients' | 'instructions' | 'tags'> {
@@ -22,7 +22,7 @@ function mapRecipe(row: RecipeRow): Omit<StoredRecipe, 'ingredients' | 'instruct
     prepMinutes: row.prep_minutes ?? undefined, cookMinutes: row.cook_minutes ?? undefined,
     totalMinutes: row.total_minutes ?? undefined, cuisine: row.cuisine ?? undefined,
     category: row.category ?? undefined, notes: row.notes ?? undefined, favorite: row.favorite === 1,
-    source: row.source_type === 'url' && row.source_url ? { type: 'url', originalUrl: row.source_url } : row.source_type === 'text' ? { type: 'text' } : row.source_type === 'pdf' && row.source_r2_key ? { type: 'pdf', r2ObjectKey: row.source_r2_key, sourceName: row.source_name ?? undefined } : { type: 'manual' }, createdAt: row.created_at, updatedAt: row.updated_at,
+    source: row.source_type === 'url' && row.source_url ? { type: 'url', originalUrl: row.source_url } : row.source_type === 'text' ? { type: 'text' } : row.source_type === 'pdf' && row.source_r2_key ? { type: 'pdf', r2ObjectKey: row.source_r2_key, sourceName: row.source_name ?? undefined } : row.source_type === 'image' && row.source_r2_key ? { type: 'image', r2ObjectKey: row.source_r2_key, sourceName: row.source_name ?? undefined } : { type: 'manual' }, createdAt: row.created_at, updatedAt: row.updated_at,
   }
 }
 
@@ -31,7 +31,7 @@ export async function createRecipe(db: D1Database, recipe: NormalizedManualRecip
   const now = new Date().toISOString()
   const source = options.source ?? { type: 'manual' }
   const statements = [db.prepare(`INSERT INTO recipes (id, title, description, servings, prep_minutes, cook_minutes, total_minutes, cuisine, category, notes, favorite, source_type, source_url, source_name, source_r2_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-    .bind(id, recipe.title, recipe.description ?? null, recipe.servings ?? null, recipe.prepMinutes ?? null, recipe.cookMinutes ?? null, recipe.totalMinutes ?? null, recipe.cuisine ?? null, recipe.category ?? null, recipe.notes ?? null, options.favorite ? 1 : 0, source.type, source.type === 'url' ? source.originalUrl : null, source.type === 'pdf' ? source.sourceName ?? null : null, source.type === 'pdf' ? source.r2ObjectKey : null, now, now)]
+    .bind(id, recipe.title, recipe.description ?? null, recipe.servings ?? null, recipe.prepMinutes ?? null, recipe.cookMinutes ?? null, recipe.totalMinutes ?? null, recipe.cuisine ?? null, recipe.category ?? null, recipe.notes ?? null, options.favorite ? 1 : 0, source.type, source.type === 'url' ? source.originalUrl : null, source.type === 'pdf' || source.type === 'image' ? source.sourceName ?? null : null, source.type === 'pdf' || source.type === 'image' ? source.r2ObjectKey : null, now, now)]
   for (const ingredient of recipe.ingredients) statements.push(db.prepare(`INSERT INTO recipe_ingredients (id, recipe_id, position, original_text, quantity, quantity_text, unit, ingredient, preparation, optional) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
     .bind(crypto.randomUUID(), id, ingredient.position, ingredient.originalText, ingredient.quantity ?? null, ingredient.quantityText ?? null, ingredient.unit ?? null, ingredient.ingredient ?? null, ingredient.preparation ?? null, ingredient.optional ? 1 : 0))
   for (const instruction of recipe.instructions) statements.push(db.prepare(`INSERT INTO recipe_instructions (id, recipe_id, step_number, text) VALUES (?, ?, ?, ?)`)

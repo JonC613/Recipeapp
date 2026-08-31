@@ -5,6 +5,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router'
 const services = vi.hoisted(() => ({
   getRecipeImport: vi.fn(),
   runPdfOcr: vi.fn(),
+  extractRecipeImage: vi.fn(),
 }))
 
 vi.mock('../../src/services/imports', () => services)
@@ -17,6 +18,7 @@ const ready = { ...available, status: 'ready' as const, failureCode: undefined, 
 beforeEach(() => {
   services.getRecipeImport.mockReset()
   services.runPdfOcr.mockReset()
+  services.extractRecipeImage.mockReset()
 })
 
 test('discloses OCR cost, shows progress, disables repeat clicks, and navigates to review', async () => {

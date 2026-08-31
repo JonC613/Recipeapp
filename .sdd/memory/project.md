@@ -1,11 +1,11 @@
 ---
 type: Software Repository
 title: Recipeapp
-description: Personal, mobile-first Recipe Library application with manual, URL, text, and retained PDF imports, optional scanned-PDF OCR, explicit import review and saving, and traditional saved-recipe search.
+description: Personal, mobile-first Recipe Library application with manual, URL, text, PDF, and TheMealDB imports, explicit review and saving, traditional saved-recipe search, and an owner-protected Cloudflare deployment.
 status: stable
-generated: {"by":"adaptive-sdd/0.3.0","at":"2026-08-29T18:00:00Z"}
+generated: {"by":"adaptive-sdd/0.3.0","at":"2026-08-31T01:42:06Z"}
 verified: [{"by":"human:owner","at":"2026-08-28T03:16:22Z"},{"by":"human:owner","at":"2026-08-29T08:16:46Z"},{"by":"human:owner","at":"2026-08-30T01:47:45Z"},{"by":"human:owner","at":"2026-08-30T05:51:22Z"}]
-sources: [{"id":"readme","resource":"../../README.md","title":"Repository README"},{"id":"foundation-spec","resource":"../../specs/001-foundation/spec.md","title":"Foundation specification"},{"id":"recipe-library-spec","resource":"../../specs/002-recipe-library/spec.md","title":"Recipe Library specification"},{"id":"url-import-spec","resource":"../../specs/003-url-import/spec.md","title":"URL Recipe Import specification"},{"id":"import-review-spec","resource":"../../specs/004-import-review/spec.md","title":"Import Review and Save specification"},{"id":"text-import-spec","resource":"../../specs/005-text-import/spec.md","title":"Text Recipe Import specification"},{"id":"pdf-import-spec","resource":"../../specs/006-pdf-import/spec.md","title":"PDF Recipe Import specification"},{"id":"recipe-search-spec","resource":"../../specs/007-recipe-search/spec.md","title":"Recipe Search specification"}]
+sources: [{"id":"readme","resource":"../../README.md","title":"Repository README"},{"id":"foundation-spec","resource":"../../specs/001-foundation/spec.md","title":"Foundation specification"},{"id":"recipe-library-spec","resource":"../../specs/002-recipe-library/spec.md","title":"Recipe Library specification"},{"id":"url-import-spec","resource":"../../specs/003-url-import/spec.md","title":"URL Recipe Import specification"},{"id":"import-review-spec","resource":"../../specs/004-import-review/spec.md","title":"Import Review and Save specification"},{"id":"text-import-spec","resource":"../../specs/005-text-import/spec.md","title":"Text Recipe Import specification"},{"id":"pdf-import-spec","resource":"../../specs/006-pdf-import/spec.md","title":"PDF Recipe Import specification"},{"id":"recipe-search-spec","resource":"../../specs/007-recipe-search/spec.md","title":"Recipe Search specification"},{"id":"secure-deployment-spec","resource":"../../specs/008-secure-deployment/spec.md","title":"Secure Cloudflare deployment specification"},{"id":"mealdb-spec","resource":"../../specs/009-mealdb-browse-import/spec.md","title":"TheMealDB browse and import specification"}]
 sdd: {"profile_version":1,"assumptions":[]}
 ---
 
@@ -45,6 +45,11 @@ service boundaries.
 - Cooks can search saved recipes case-insensitively across title, ingredients, tags, cuisine, and category,
   then combine a keyword with favorite, tag, ingredient, cuisine, or category filters. Criteria are
   read-only, clearable, and return only saved recipe summaries.
+- Cooks can browse TheMealDB by category or area, search by name, and preview a normalized recipe without
+  creating a record. An explicit import creates an immutable `mealdb` import snapshot; review and save
+  remain required before one approved Recipeapp recipe is added.
+- The application is deployed on an owner-protected custom Cloudflare hostname. Cloudflare Access protects
+  the exact application hostname; Worker-only secrets, production D1, and private R2 remain server-side.
 - Foundation UI, Worker health endpoint, and responsive recovery experiences remain implemented and
   locally validated. D1 and private R2 bindings are exercised through local simulations and tests.
 
@@ -56,6 +61,6 @@ service boundaries.
   limited to one attempt per retained import, uses a temporary `user_data` provider file with a
   one-hour expiry fallback, and attempts immediate deletion. Automated tests use controlled doubles
   and make no paid provider calls.
-- Remote deployment is intentionally deferred. Before any remote deployment, an owner-controlled
-  custom hostname, Cloudflare Access with an owner-restricted Allow policy, and separate deployment
-  approval are required.
+- TheMealDB integration is for the personal MVP only. A future public or multi-user launch needs a fresh
+  provider-access and terms review. The currently implemented Feature 009 changes remain undeployed
+  until a separately approved production migration and deployment.

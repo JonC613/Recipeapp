@@ -1,0 +1,41 @@
+import { expect, test } from '@playwright/test'
+
+test('browses a TheMealDB category without creating an import at mobile width', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 720 })
+  await page.route('**/api/mealdb/categories', (route) => route.fulfill({ json: [{ id: 'Chicken', label: 'Chicken' }] }))
+  await page.route('**/api/mealdb/areas', (route) => route.fulfill({ json: [{ id: 'Japanese', label: 'Japanese' }] }))
+  await page.route('**/api/mealdb/recipes?category=Chicken', (route) => route.fulfill({ json: [{ id: '52772', title: 'Teriyaki Chicken Casserole' }] }))
+  await page.goto('/recipes/import')
+  await page.getByRole('link', { name: 'Browse TheMealDB recipes' }).click()
+  await page.getByRole('button', { name: 'Browse recipes' }).click()
+  await expect(page.getByRole('heading', { name: 'Teriyaki Chicken Casserole' })).toBeVisible()
+  await expect(page.getByText('Nothing is saved until you explicitly import a recipe.')).toBeVisible()
+  await expect(page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).resolves.toBe(true)
+})
+
+test('searches and previews a TheMealDB recipe without an import', async ({ page }) => {
+  await page.route('**/api/mealdb/categories', (route) => route.fulfill({ json: [{ id: 'Chicken', label: 'Chicken' }] }))
+  await page.route('**/api/mealdb/areas', (route) => route.fulfill({ json: [{ id: 'Japanese', label: 'Japanese' }] }))
+  await page.route('**/api/mealdb/search?q=teriyaki', (route) => route.fulfill({ json: [{ id: '52772', title: 'Teriyaki Chicken Casserole' }] }))
+  await page.route('**/api/mealdb/recipes/52772', (route) => route.fulfill({ json: { id: '52772', title: 'Teriyaki Chicken Casserole', ingredients: [{ originalText: '1 chicken breast' }], instructions: ['Bake it.'], tags: [], attribution: 'TheMealDB' } }))
+  await page.goto('/recipes/mealdb')
+  await page.getByRole('textbox', { name: 'Search TheMealDB by recipe name' }).fill('teriyaki')
+  await page.getByRole('button', { name: 'Search recipes' }).click()
+  await page.getByRole('button', { name: 'Preview recipe' }).click()
+  await expect(page.getByText('Review the recipe before import. Nothing is saved yet.')).toBeVisible()
+  await expect(page.getByText('1 chicken breast')).toBeVisible()
+})
+
+test('imports a selected TheMealDB preview into existing review', async ({ page }) => {
+  await page.route('**/api/mealdb/categories', (route) => route.fulfill({ json: [{ id: 'Chicken', label: 'Chicken' }] }))
+  await page.route('**/api/mealdb/areas', (route) => route.fulfill({ json: [{ id: 'Japanese', label: 'Japanese' }] }))
+  await page.route('**/api/mealdb/search?q=teriyaki', (route) => route.fulfill({ json: [{ id: '52772', title: 'Teriyaki Chicken Casserole' }] }))
+  await page.route('**/api/mealdb/recipes/52772', (route) => route.fulfill({ json: { id: '52772', title: 'Teriyaki Chicken Casserole', ingredients: [{ originalText: '1 chicken breast' }], instructions: ['Bake it.'], tags: [], attribution: 'TheMealDB' } }))
+  await page.route('**/api/import/mealdb', (route) => route.fulfill({ status: 201, json: { id: 'mealdb-import-1', sourceType: 'mealdb', sourceUrl: 'https://www.themealdb.com/meal/52772', sourceName: 'TheMealDB', status: 'ready', createdAt: '2026-08-30T00:00:00.000Z', draft: { title: 'Teriyaki Chicken Casserole', ingredients: [{ originalText: '1 chicken breast' }], instructions: [{ text: 'Bake it.' }], source: { type: 'mealdb', originalUrl: 'https://www.themealdb.com/meal/52772', providerId: '52772', sourceName: 'TheMealDB', importedAt: '2026-08-30T00:00:00.000Z' } } } }))
+  await page.goto('/recipes/mealdb')
+  await page.getByRole('textbox', { name: 'Search TheMealDB by recipe name' }).fill('teriyaki')
+  await page.getByRole('button', { name: 'Search recipes' }).click()
+  await page.getByRole('button', { name: 'Preview recipe' }).click()
+  await page.getByRole('button', { name: 'Import for review' }).click()
+  await expect(page).toHaveURL(/\/imports\/mealdb-import-1\/review$/)
+})
