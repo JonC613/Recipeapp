@@ -30,6 +30,12 @@ h2 { margin: 0; font-size: clamp(1.55rem, 4vw, 2.25rem); }
 .site-footer { width: min(100% - 2rem, 72rem); margin-inline: auto; padding-block: 1.5rem; border-top: 1px solid #d7d4c9; color: #59645d; font-size: .95rem; }
 @media (max-width: 32rem) { .site-header__content { align-items: flex-start; } main { padding-block: 2.5rem; } }
 .recipe-page { display: grid; gap: 1.5rem; max-width: 58rem; }
+.import-page { gap: 1.25rem; }
+.import-page__heading { display: grid; gap: .8rem; max-width: 48rem; }.import-page__heading p:last-child, .import-workspace > div > p, .import-page__review-note { margin: 0; color: #4a584e; line-height: 1.55; }
+.import-source-chooser { margin: 0; padding: 0; border: 0; }.import-source-chooser legend { margin-bottom: .75rem; font-weight: 800; }.import-source-chooser__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; }
+.import-source-option { display: grid; gap: .35rem; min-height: 7.5rem; align-content: start; padding: 1rem; border: 1px solid #c9d2c8; border-radius: .65rem; background: #fffdf8; color: #244234; font: inherit; text-align: left; text-decoration: none; cursor: pointer; }.import-source-option span { color: #59645d; font-size: .9rem; line-height: 1.35; }.import-source-option[aria-pressed="true"] { border-color: #244234; background: #e9f1e9; box-shadow: inset 0 0 0 1px #244234; }.import-source-option:hover { border-color: #244234; }
+.import-workspace { display: grid; gap: 1rem; padding: clamp(1rem, 4vw, 1.5rem); border: 1px solid #c9d2c8; border-radius: .75rem; background: #fffdf8; }.import-workspace > div { display: grid; gap: .4rem; }.import-workspace .recipe-form { padding: 0; border: 0; background: transparent; }.import-page__review-note { padding: .85rem 1rem; border-left: .25rem solid #b7cbbd; background: #f4faf4; }
+@media (max-width: 42rem) { .import-source-chooser__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.import-source-option { min-height: 6.75rem; } }
 .page-heading { display: flex; align-items: end; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; }
 .recipe-page h1 { max-width: none; font-size: clamp(2.2rem, 7vw, 4.5rem); }
 .page-heading__description { max-width: 37rem; margin: .8rem 0 0; color: #4a584e; line-height: 1.55; }

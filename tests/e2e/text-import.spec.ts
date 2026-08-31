@@ -7,6 +7,7 @@ test('pastes text, reviews it, and saves one text-sourced recipe without overflo
   await page.route('**/api/import/text-import-1', async (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(textImport) }))
   await page.route('**/api/import/text-import-1/approve', async (route) => route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ id: 'recipe-text-1', title: 'Rosemary potatoes', favorite: false, source: { type: 'text' } }) }))
   await page.goto('/recipes/import')
+  await page.getByRole('button', { name: 'Paste recipe text' }).click()
   await page.getByRole('textbox', { name: 'Recipe text' }).fill(textImport.sourceText)
   await page.getByRole('button', { name: 'Extract recipe' }).click()
   await expect(page.getByRole('heading', { name: 'Rosemary potatoes' })).toBeVisible()
@@ -19,6 +20,7 @@ test('pastes text, reviews it, and saves one text-sourced recipe without overflo
 
 test('rejects empty text locally and offers manual recovery', async ({ page }) => {
   await page.goto('/recipes/import')
+  await page.getByRole('button', { name: 'Paste recipe text' }).click()
   await page.getByRole('button', { name: 'Extract recipe' }).click()
   await expect(page.getByRole('alert')).toContainText('Paste recipe text')
   await expect(page.getByRole('link', { name: 'Enter a recipe manually' })).toBeVisible()

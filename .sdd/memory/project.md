@@ -1,11 +1,11 @@
 ---
 type: Software Repository
 title: Recipeapp
-description: Personal, mobile-first Recipe Library application with manual, URL, text, PDF, and TheMealDB imports, explicit review and saving, traditional saved-recipe search, and an owner-protected Cloudflare deployment.
+description: Personal, mobile-first Recipe Library application with manual, URL, text, PDF, image/screenshot, and TheMealDB imports, explicit review and saving, traditional saved-recipe search, and an owner-protected Cloudflare deployment.
 status: stable
 generated: {"by":"adaptive-sdd/0.3.0","at":"2026-08-31T01:42:06Z"}
 verified: [{"by":"human:owner","at":"2026-08-28T03:16:22Z"},{"by":"human:owner","at":"2026-08-29T08:16:46Z"},{"by":"human:owner","at":"2026-08-30T01:47:45Z"},{"by":"human:owner","at":"2026-08-30T05:51:22Z"}]
-sources: [{"id":"readme","resource":"../../README.md","title":"Repository README"},{"id":"foundation-spec","resource":"../../specs/001-foundation/spec.md","title":"Foundation specification"},{"id":"recipe-library-spec","resource":"../../specs/002-recipe-library/spec.md","title":"Recipe Library specification"},{"id":"url-import-spec","resource":"../../specs/003-url-import/spec.md","title":"URL Recipe Import specification"},{"id":"import-review-spec","resource":"../../specs/004-import-review/spec.md","title":"Import Review and Save specification"},{"id":"text-import-spec","resource":"../../specs/005-text-import/spec.md","title":"Text Recipe Import specification"},{"id":"pdf-import-spec","resource":"../../specs/006-pdf-import/spec.md","title":"PDF Recipe Import specification"},{"id":"recipe-search-spec","resource":"../../specs/007-recipe-search/spec.md","title":"Recipe Search specification"},{"id":"secure-deployment-spec","resource":"../../specs/008-secure-deployment/spec.md","title":"Secure Cloudflare deployment specification"},{"id":"mealdb-spec","resource":"../../specs/009-mealdb-browse-import/spec.md","title":"TheMealDB browse and import specification"}]
+sources: [{"id":"readme","resource":"../../README.md","title":"Repository README"},{"id":"foundation-spec","resource":"../../specs/001-foundation/spec.md","title":"Foundation specification"},{"id":"recipe-library-spec","resource":"../../specs/002-recipe-library/spec.md","title":"Recipe Library specification"},{"id":"url-import-spec","resource":"../../specs/003-url-import/spec.md","title":"URL Recipe Import specification"},{"id":"import-review-spec","resource":"../../specs/004-import-review/spec.md","title":"Import Review and Save specification"},{"id":"text-import-spec","resource":"../../specs/005-text-import/spec.md","title":"Text Recipe Import specification"},{"id":"pdf-import-spec","resource":"../../specs/006-pdf-import/spec.md","title":"PDF Recipe Import specification"},{"id":"recipe-search-spec","resource":"../../specs/007-recipe-search/spec.md","title":"Recipe Search specification"},{"id":"secure-deployment-spec","resource":"../../specs/008-secure-deployment/spec.md","title":"Secure Cloudflare deployment specification"},{"id":"mealdb-spec","resource":"../../specs/009-mealdb-browse-import/spec.md","title":"TheMealDB browse and import specification"},{"id":"image-import-spec","resource":"../../specs/010-image-screenshot-import/spec.md","title":"Image and screenshot import specification"}]
 sdd: {"profile_version":1,"assumptions":[]}
 ---
 
@@ -36,6 +36,8 @@ service boundaries.
 - Cooks can upload one valid PDF up to 20 MB. The Worker retains the original privately in R2, attempts
   deterministic embedded-text extraction, creates an unsaved draft when usable recipe text is found,
   and reuses the existing review and explicit-save workflow.
+- Cooks can select or paste one JPEG, PNG, WebP, or HEIC recipe image up to 10 MB, retain it privately
+  in R2, then explicitly spend one AI vision extraction attempt before entering the same review and save flow.
 - For a retained image-only PDF of at most 10 pages, the cook can explicitly request one OCR attempt
   after seeing an AI-credit disclosure. Usable OCR text passes through the constrained recipe parser;
   terminal outcomes remain recoverable and never create a recipe automatically.
@@ -55,12 +57,10 @@ service boundaries.
 
 ## Boundaries
 
-- Application authentication, standalone image/screenshot import, semantic/vector search, recipe ranking,
-  and conversational search are not implemented.
+- Application authentication, semantic/vector search, recipe ranking, and conversational search are not implemented.
 - AI text parsing and OCR use Worker-only OpenAI credentials. OCR requires explicit user action, is
   limited to one attempt per retained import, uses a temporary `user_data` provider file with a
   one-hour expiry fallback, and attempts immediate deletion. Automated tests use controlled doubles
   and make no paid provider calls.
 - TheMealDB integration is for the personal MVP only. A future public or multi-user launch needs a fresh
-  provider-access and terms review. The currently implemented Feature 009 changes remain undeployed
-  until a separately approved production migration and deployment.
+  provider-access and terms review; its approved browse and import capability is deployed.

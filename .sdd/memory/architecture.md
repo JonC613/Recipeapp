@@ -1,7 +1,7 @@
 ---
 type: Software Architecture
 title: Recipeapp Recipe Library Architecture
-description: Current single-repository browser, Worker, D1 import persistence, owner-protected Cloudflare deployment, private R2 PDF storage, bounded AI text/OCR, and Worker-owned TheMealDB browse/import architecture.
+description: Current single-repository browser, Worker, D1 import persistence, owner-protected Cloudflare deployment, private R2 source storage, bounded AI text/OCR/vision, and Worker-owned TheMealDB browse/import architecture.
 status: stable
 generated: {"by":"adaptive-sdd/0.3.0","at":"2026-08-31T01:42:06Z"}
 verified: [{"by":"human:owner","at":"2026-08-28T03:16:22Z"},{"by":"human:owner","at":"2026-08-29T08:16:46Z"},{"by":"human:owner","at":"2026-08-30T01:47:45Z"},{"by":"human:owner","at":"2026-08-30T05:51:22Z"}]
@@ -15,10 +15,10 @@ sdd: {"profile_version":1,"assumptions":[]}
 
 - React and Vite provide feature UI under `src/`; the shared app shell includes safe health recovery.
 - A Cloudflare Worker under `worker/` provides recipe CRUD, health, and import routes under `/api`.
-- D1 binding `DB` holds recipes plus ordered ingredients, instructions, tags, and retained URL/text/PDF
+- D1 binding `DB` holds recipes plus ordered ingredients, instructions, tags, and retained URL/text/PDF/image
   import attempts. Each approved import records a unique `approved_recipe_id`; the recipe schema
   reserves an ownership column for future multi-user support. Private R2 binding `RECIPE_SOURCES`
-  retains original PDF source documents without exposing public object URLs.
+  retains original PDF and image sources without exposing public object URLs.
 
 ## Relationships and flows
 
@@ -46,6 +46,10 @@ sdd: {"profile_version":1,"assumptions":[]}
   the 10-page limit, uploads a temporary one-hour `user_data` file to OpenAI, invokes Responses by
   `file_id`, bounds the result, and attempts immediate provider-file deletion. Usable OCR text then
   enters the same constrained parser and review boundary; safe terminal state is retained otherwise.
+- Image and screenshot imports submit one validated image to `POST /api/import/image`, retain its original
+  privately in R2, and create a pending import without an AI call. The owner can explicitly call
+  `POST /api/import/:id/extract-image` once; bounded Worker-owned vision extraction produces the existing
+  editable draft or a retained safe failure, never a recipe automatically.
 - The Recipe Library submits a typed transient criteria object to `GET /api/recipes`. The Worker trims and
   normalizes text, accepts only boolean favorite values, and passes criteria to the D1 repository. The
   repository uses bound, case-insensitive clauses over saved recipe, ingredient, and tag records; every
@@ -56,14 +60,15 @@ sdd: {"profile_version":1,"assumptions":[]}
   Approval saves the canonical TheMealDB URL through the pre-existing recipe `url` source shape.
 - The public contract includes `GET /api/health` and `GET/POST/PUT/DELETE /api/recipes`, with
   `PATCH /api/recipes/:id/favorite`, `POST /api/import/url`, `POST /api/import/text`,
-  `POST /api/import/pdf`, `GET /api/import/:importId`, `POST /api/import/:importId/ocr`, and
+  `POST /api/import/pdf`, `POST /api/import/image`, `GET /api/import/:importId`,
+  `POST /api/import/:importId/ocr`, `POST /api/import/:importId/extract-image`, and
   `POST /api/import/:importId/approve`; safe error responses are allow-listed.
 - `GET /api/recipes` accepts optional `q`, `favorite`, `tag`, `ingredient`, `cuisine`, and `category`
   criteria. Its response remains a safe recipe-summary projection and never includes import, source,
   provider, or private R2 data for search.
-- The Feature 009 repository implementation adds `GET /api/mealdb/categories`, `GET /api/mealdb/areas`,
+- The deployed Feature 009 implementation adds `GET /api/mealdb/categories`, `GET /api/mealdb/areas`,
   `GET /api/mealdb/recipes`, `GET /api/mealdb/search`, `GET /api/mealdb/recipes/:providerId`, and
-  `POST /api/import/mealdb`. It is tested locally but has not yet been deployed.
+  `POST /api/import/mealdb`.
 - Verification spans React component tests, Worker tests, local binding integration tests, and
   Playwright responsive journeys at 320, 768, and 1440 CSS pixels.
 

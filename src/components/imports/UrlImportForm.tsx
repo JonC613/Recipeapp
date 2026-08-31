@@ -35,7 +35,7 @@ export function UrlImportForm({ onImport }: { onImport: (url: string) => Promise
   return <>
     <form className="recipe-form" onSubmit={(event) => void submit(event)}>
       <label>Recipe URL<input type="url" value={url} onChange={(event) => setUrl(event.target.value)} required /></label>
-      <p className="hint">Nothing is saved to your library yet.</p>
+      <p className="hint">We will prepare a draft from this public recipe page.</p>
       {error && <p role="alert">{error}</p>}
       <button type="submit">Import recipe</button>
     </form>

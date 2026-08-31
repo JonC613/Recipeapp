@@ -10,6 +10,7 @@ test('pastes an image locally before explicitly retaining it', async ({ page }) 
     await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify(available) })
   })
   await page.goto('/recipes/import')
+  await page.getByRole('button', { name: 'Use an image' }).click()
   await page.getByRole('group', { name: 'Paste a copied screenshot' }).evaluate((target) => {
     const clipboard = new DataTransfer()
     clipboard.items.add(new File(['screenshot'], 'copied-recipe.png', { type: 'image/png' }))

@@ -43,3 +43,6 @@
   browse, search, preview, explicit import, review, and save; immutable `mealdb` import history; and
   canonical URL mapping for approved recipes. The code is fully locally tested but deployment remains a
   separate approval. Source: `specs/009-mealdb-browse-import/`.
+- **Memory correction (approved):** Reconciled stale boundaries and deployment claims: standalone image/
+  screenshot import and the deployed TheMealDB browse/import capability are current repository behavior.
+  Sources: `specs/009-mealdb-browse-import/`, `specs/010-image-screenshot-import/`, and `worker/index.ts`.
