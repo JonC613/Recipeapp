@@ -10,8 +10,18 @@ export function extractRecipeDraft(html: string, originalUrl: string, importedAt
 }
 function flatten(value: unknown): unknown[] { if (Array.isArray(value)) return value.flatMap(flatten); if (value && typeof value === 'object') { const item = value as Record<string, unknown>; return [item, ...flatten(item['@graph'] ?? [])] } return [] }
 function isRecipe(value: unknown): boolean { const type = (value as Record<string, unknown>)?.['@type']; return type === 'Recipe' || (Array.isArray(type) && type.includes('Recipe')) }
-function text(value: unknown): string | undefined { return typeof value === 'string' && value.trim() ? value.trim() : undefined }
-function strings(value: unknown): string[] { const items = Array.isArray(value) ? value : typeof value === 'string' ? value.split(',') : []; return items.flatMap((item) => typeof item === 'string' && item.trim() ? [item.trim()] : []) }
+const namedEntities: Record<string, string> = { amp: '&', apos: "'", gt: '>', lt: '<', nbsp: '\u00a0', quot: '"' }
+function decodeHtmlEntities(value: string): string {
+  return value.replace(/&(?:(#x[0-9a-f]+)|(#\d+)|([a-z][a-z0-9]+));/gi, (entity, hexadecimal?: string, decimal?: string, named?: string) => {
+    if (named) return namedEntities[named.toLowerCase()] ?? entity
+    const encodedValue = hexadecimal ?? decimal
+    if (!encodedValue) return entity
+    const codePoint = Number.parseInt(encodedValue.slice(hexadecimal ? 2 : 1), hexadecimal ? 16 : 10)
+    return codePoint > 0 && codePoint <= 0x10ffff && (codePoint < 0xd800 || codePoint > 0xdfff) ? String.fromCodePoint(codePoint) : entity
+  })
+}
+function text(value: unknown): string | undefined { if (typeof value !== 'string') return undefined; const normalized = decodeHtmlEntities(value).trim(); return normalized || undefined }
+function strings(value: unknown): string[] { const items = Array.isArray(value) ? value : typeof value === 'string' ? value.split(',') : []; return items.flatMap((item) => text(item) ? [text(item)!] : []) }
 function number(value: unknown): number | undefined { const match = text(value)?.match(/\d+(?:\.\d+)?/); return match ? Number(match[0]) : undefined }
 function duration(value: unknown): number | undefined { const match = text(value)?.match(/^PT(?:(\d+)H)?(?:(\d+)M)?$/); return match ? Number(match[1] ?? 0) * 60 + Number(match[2] ?? 0) : undefined }
-function instructionText(value: unknown): string[] { if (typeof value === 'string') return value.trim() ? [value.trim()] : []; if (!Array.isArray(value)) return []; return value.flatMap((item) => typeof item === 'string' ? [item] : item && typeof item === 'object' ? instructionText((item as Record<string, unknown>).text ?? (item as Record<string, unknown>).itemListElement) : []).filter(Boolean) }
+function instructionText(value: unknown): string[] { if (typeof value === 'string') return text(value) ? [text(value)!] : []; if (!Array.isArray(value)) return []; return value.flatMap((item) => typeof item === 'string' ? instructionText(item) : item && typeof item === 'object' ? instructionText((item as Record<string, unknown>).text ?? (item as Record<string, unknown>).itemListElement) : []) }

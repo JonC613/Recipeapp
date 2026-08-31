@@ -17,6 +17,18 @@ describe('URL import extraction', () => {
     expect(draft).toMatchObject({ title: 'Lemon Pasta', servings: 4, prepMinutes: 10, ingredients: [{ originalText: '1 lemon' }, { originalText: '2 tbsp oil' }], instructions: [{ text: 'Zest lemon.' }, { text: 'Toss.' }], source: { originalUrl: 'https://example.com/lemon-pasta' } })
   })
 
+  it('decodes supported HTML entities from JSON-LD recipe text without changing instruction order', () => {
+    const html = `<script type="application/ld+json">{"@type":"Recipe","name":"Tomato &amp; Basil","description":"Fresh&nbsp;sauce","recipeIngredient":["1&#32;avocado &amp; feta"],"recipeInstructions":[{"@type":"HowToSection","itemListElement":[{"@type":"HowToStep","text":"Finish &amp; serve: Fold in 1&#32;avocado and 4 ounces&#x20;crumbled feta cheese &quot;if using&quot;."}]}],"recipeCategory":"Quick &amp; Easy"}</script>`
+    const draft = extractRecipeDraft(html, 'https://example.com/entity-pasta', '2026-08-31T00:00:00.000Z')
+    expect(draft).toMatchObject({ title: 'Tomato & Basil', description: 'Fresh sauce', category: 'Quick & Easy', ingredients: [{ originalText: '1 avocado & feta' }], instructions: [{ text: 'Finish & serve: Fold in 1 avocado and 4 ounces crumbled feta cheese "if using".' }] })
+  })
+
+  it('keeps malformed or unknown entities as literal recipe text', () => {
+    const html = `<script type="application/ld+json">{"@type":"Recipe","name":"Literal &madeup; &#x110000;","recipeInstructions":["Cook &madeup; &#x110000;."]}</script>`
+    const draft = extractRecipeDraft(html, 'https://example.com/literal-entities', '2026-08-31T00:00:00.000Z')
+    expect(draft).toMatchObject({ title: 'Literal &madeup; &#x110000;', instructions: [{ text: 'Cook &madeup; &#x110000;.' }] })
+  })
+
   it('fails safely when no unambiguous recipe exists', () => {
     expect(() => extractRecipeDraft('<html></html>', 'https://example.com', '2026-08-28T00:00:00.000Z')).toThrow('No usable recipe')
   })
