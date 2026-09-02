@@ -46,3 +46,13 @@
 - **Memory correction (approved):** Reconciled stale boundaries and deployment claims: standalone image/
   screenshot import and the deployed TheMealDB browse/import capability are current repository behavior.
   Sources: `specs/009-mealdb-browse-import/`, `specs/010-image-screenshot-import/`, and `worker/index.ts`.
+
+## 2026-09-02
+
+- **Usage & Costs dashboard update (approved):** Recorded the deployed owner-facing read-only dashboard:
+  bounded application, Cloudflare, and OpenAI reporting adapters; safe independent availability states;
+  optional budget state; and Worker-only reporting credentials. Source:
+  `.litespec/usage-cost-dashboard/`.
+- **Cooking Mode update (approved):** Recorded the deployed presentation-only cooking route: one local
+  instruction at a time, bounded next/previous controls, visible ingredients, responsive coverage, and no
+  recipe mutation or new API dependency. Source: `.tinyspec/cooking-mode.md`.

@@ -3,9 +3,9 @@ type: Software Repository
 title: Recipeapp
 description: Personal, mobile-first Recipe Library application with manual, URL, text, PDF, image/screenshot, and TheMealDB imports, explicit review and saving, traditional saved-recipe search, and an owner-protected Cloudflare deployment.
 status: stable
-generated: {"by":"adaptive-sdd/0.3.0","at":"2026-08-31T01:42:06Z"}
+generated: {"by":"adaptive-sdd/0.3.0","at":"2026-09-02T16:30:00Z"}
 verified: [{"by":"human:owner","at":"2026-08-28T03:16:22Z"},{"by":"human:owner","at":"2026-08-29T08:16:46Z"},{"by":"human:owner","at":"2026-08-30T01:47:45Z"},{"by":"human:owner","at":"2026-08-30T05:51:22Z"}]
-sources: [{"id":"readme","resource":"../../README.md","title":"Repository README"},{"id":"foundation-spec","resource":"../../specs/001-foundation/spec.md","title":"Foundation specification"},{"id":"recipe-library-spec","resource":"../../specs/002-recipe-library/spec.md","title":"Recipe Library specification"},{"id":"url-import-spec","resource":"../../specs/003-url-import/spec.md","title":"URL Recipe Import specification"},{"id":"import-review-spec","resource":"../../specs/004-import-review/spec.md","title":"Import Review and Save specification"},{"id":"text-import-spec","resource":"../../specs/005-text-import/spec.md","title":"Text Recipe Import specification"},{"id":"pdf-import-spec","resource":"../../specs/006-pdf-import/spec.md","title":"PDF Recipe Import specification"},{"id":"recipe-search-spec","resource":"../../specs/007-recipe-search/spec.md","title":"Recipe Search specification"},{"id":"secure-deployment-spec","resource":"../../specs/008-secure-deployment/spec.md","title":"Secure Cloudflare deployment specification"},{"id":"mealdb-spec","resource":"../../specs/009-mealdb-browse-import/spec.md","title":"TheMealDB browse and import specification"},{"id":"image-import-spec","resource":"../../specs/010-image-screenshot-import/spec.md","title":"Image and screenshot import specification"}]
+sources: [{"id":"readme","resource":"../../README.md","title":"Repository README"},{"id":"foundation-spec","resource":"../../specs/001-foundation/spec.md","title":"Foundation specification"},{"id":"recipe-library-spec","resource":"../../specs/002-recipe-library/spec.md","title":"Recipe Library specification"},{"id":"url-import-spec","resource":"../../specs/003-url-import/spec.md","title":"URL Recipe Import specification"},{"id":"import-review-spec","resource":"../../specs/004-import-review/spec.md","title":"Import Review and Save specification"},{"id":"text-import-spec","resource":"../../specs/005-text-import/spec.md","title":"Text Recipe Import specification"},{"id":"pdf-import-spec","resource":"../../specs/006-pdf-import/spec.md","title":"PDF Recipe Import specification"},{"id":"recipe-search-spec","resource":"../../specs/007-recipe-search/spec.md","title":"Recipe Search specification"},{"id":"secure-deployment-spec","resource":"../../specs/008-secure-deployment/spec.md","title":"Secure Cloudflare deployment specification"},{"id":"mealdb-spec","resource":"../../specs/009-mealdb-browse-import/spec.md","title":"TheMealDB browse and import specification"},{"id":"image-import-spec","resource":"../../specs/010-image-screenshot-import/spec.md","title":"Image and screenshot import specification"},{"id":"usage-dashboard-spec","resource":"../../.litespec/usage-cost-dashboard/spec.md","title":"Usage and Costs dashboard specification"},{"id":"cooking-mode-spec","resource":"../../.tinyspec/cooking-mode.md","title":"Cooking Mode TinySpec"}]
 sdd: {"profile_version":1,"assumptions":[]}
 ---
 
@@ -52,6 +52,10 @@ service boundaries.
   remain required before one approved Recipeapp recipe is added.
 - The application is deployed on an owner-protected custom Cloudflare hostname. Cloudflare Access protects
   the exact application hostname; Worker-only secrets, production D1, and private R2 remain server-side.
+- The owner can open a protected Usage & Costs dashboard that summarizes Recipeapp activity, Cloudflare
+  resource usage, and organization-level OpenAI usage/cost reporting with independent availability states.
+- Cooks can open a read-only Cooking Mode from a saved recipe, follow one ordered instruction at a time,
+  move locally between bounded steps, keep ingredients visible, and return to the normal detail view.
 - Foundation UI, Worker health endpoint, and responsive recovery experiences remain implemented and
   locally validated. D1 and private R2 bindings are exercised through local simulations and tests.
 
