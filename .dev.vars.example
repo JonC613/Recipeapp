@@ -2,3 +2,11 @@
 # Never commit a real API key.
 OPENAI_API_KEY="replace-with-local-key"
 OPENAI_MODEL="gpt-5-mini"
+# Optional reporting settings. Never put real token values in this file.
+# USAGE_MONTHLY_BUDGET_USD="10"
+# CLOUDFLARE_ACCOUNT_ID="replace-with-account-id"
+# CLOUDFLARE_ANALYTICS_API_TOKEN="replace-with-read-only-token"
+# CLOUDFLARE_WORKER_NAME="recipeapp"
+# CLOUDFLARE_D1_DATABASE_ID="replace-with-d1-database-id"
+# CLOUDFLARE_R2_BUCKET_NAME="recipeapp-sources"
+# OPENAI_ADMIN_API_KEY="replace-with-openai-admin-reporting-key"

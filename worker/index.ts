@@ -3,12 +3,14 @@ import { handleHealth } from './routes/health.js'
 import { handleFavorite, handleRecipes } from './routes/recipes.js'
 import { handleImageImport, handleImageVision, handleImport, handleImportApproval, handleMealDbImport, handlePdfImport, handlePdfOcr, handleTextImport, handleUrlImport } from './routes/imports.js'
 import { handleMealDb } from './routes/mealdb.js'
+import { handleUsage } from './routes/usage.js'
 
 export default {
   fetch(request, env) {
     const { pathname } = new URL(request.url)
 
     if (pathname === '/api/health') return handleHealth(request, env)
+    if (pathname === '/api/admin/usage') return handleUsage(request, env)
     if (pathname === '/api/recipes') return handleRecipes(request, env)
     if (pathname === '/api/import/url' && request.method === 'POST') return handleUrlImport(request, env)
     if (pathname === '/api/import/text' && request.method === 'POST') return handleTextImport(request, env)

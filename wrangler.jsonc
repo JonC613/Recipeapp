@@ -41,11 +41,15 @@
 	},
 	"upload_source_maps": true,
 	"secrets": {
-		"required": ["OPENAI_API_KEY"]
+		"required": ["OPENAI_API_KEY", "OPENAI_ADMIN_API_KEY", "CLOUDFLARE_ANALYTICS_API_TOKEN"]
 	},
 	"vars": {
 		"OPENAI_MODEL": "gpt-5-mini",
-		"OPENAI_OCR_MODEL": "gpt-5-mini"
+		"OPENAI_OCR_MODEL": "gpt-5-mini",
+		"CLOUDFLARE_ACCOUNT_ID": "0543bb534a9dec54c0eb205d7ae3a18f",
+		"CLOUDFLARE_WORKER_NAME": "recipeapp",
+		"CLOUDFLARE_D1_DATABASE_ID": "f49edf5c-a339-48a8-9b06-0848094b310c",
+		"CLOUDFLARE_R2_BUCKET_NAME": "recipeapp-sources"
 	}
 	/**
 	 * Smart Placement
