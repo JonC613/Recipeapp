@@ -3,9 +3,9 @@ type: Software Architecture
 title: Recipeapp Recipe Library Architecture
 description: Current single-repository browser, Worker, D1 import persistence, owner-protected Cloudflare deployment, private R2 source storage, bounded AI text/OCR/vision, and Worker-owned TheMealDB browse/import architecture.
 status: stable
-generated: {"by":"adaptive-sdd/0.3.0","at":"2026-09-02T16:30:00Z"}
+generated: {"by":"adaptive-sdd/0.3.0","at":"2026-09-02T19:30:00Z"}
 verified: [{"by":"human:owner","at":"2026-08-28T03:16:22Z"},{"by":"human:owner","at":"2026-08-29T08:16:46Z"},{"by":"human:owner","at":"2026-08-30T01:47:45Z"},{"by":"human:owner","at":"2026-08-30T05:51:22Z"}]
-sources: [{"id":"recipe-library-plan","resource":"../../specs/002-recipe-library/plan.md","title":"Recipe Library implementation plan"},{"id":"url-import-plan","resource":"../../specs/003-url-import/plan.md","title":"URL Recipe Import implementation plan"},{"id":"import-review-plan","resource":"../../specs/004-import-review/plan.md","title":"Import Review and Save implementation plan"},{"id":"text-import-plan","resource":"../../specs/005-text-import/plan.md","title":"Text Recipe Import implementation plan"},{"id":"pdf-import-plan","resource":"../../specs/006-pdf-import/plan.md","title":"PDF Recipe Import implementation plan"},{"id":"recipe-search-plan","resource":"../../specs/007-recipe-search/plan.md","title":"Recipe Search implementation plan"},{"id":"secure-deployment-plan","resource":"../../specs/008-secure-deployment/plan.md","title":"Secure Cloudflare deployment plan"},{"id":"mealdb-plan","resource":"../../specs/009-mealdb-browse-import/plan.md","title":"TheMealDB browse and import plan"},{"id":"recipe-migration","resource":"../../migrations/0001_recipe_library.sql","title":"Recipe Library D1 migration"},{"id":"url-import-migration","resource":"../../migrations/0002_url_imports.sql","title":"URL import migration"},{"id":"import-approval-migration","resource":"../../migrations/0003_import_approvals.sql","title":"Import approval migration"},{"id":"text-import-migration","resource":"../../migrations/0004_text_imports.sql","title":"Text import migration"},{"id":"pdf-import-migration","resource":"../../migrations/0005_pdf_imports.sql","title":"PDF import migration"},{"id":"pdf-ocr-migration","resource":"../../migrations/0006_pdf_ocr_attempts.sql","title":"PDF OCR attempt migration"},{"id":"mealdb-import-migration","resource":"../../migrations/0007_mealdb_imports.sql","title":"TheMealDB import migration"},{"id":"worker-config","resource":"../../wrangler.jsonc","title":"Worker configuration"},{"id":"package","resource":"../../package.json","title":"Project scripts and dependencies"},{"id":"usage-dashboard-plan","resource":"../../.litespec/usage-cost-dashboard/plan.md","title":"Usage and Costs dashboard plan"},{"id":"cooking-mode-spec","resource":"../../.tinyspec/cooking-mode.md","title":"Cooking Mode TinySpec"}]
+sources: [{"id":"recipe-library-plan","resource":"../../specs/002-recipe-library/plan.md","title":"Recipe Library implementation plan"},{"id":"url-import-plan","resource":"../../specs/003-url-import/plan.md","title":"URL Recipe Import implementation plan"},{"id":"import-review-plan","resource":"../../specs/004-import-review/plan.md","title":"Import Review and Save implementation plan"},{"id":"text-import-plan","resource":"../../specs/005-text-import/plan.md","title":"Text Recipe Import implementation plan"},{"id":"pdf-import-plan","resource":"../../specs/006-pdf-import/plan.md","title":"PDF Recipe Import implementation plan"},{"id":"recipe-search-plan","resource":"../../specs/007-recipe-search/plan.md","title":"Recipe Search implementation plan"},{"id":"secure-deployment-plan","resource":"../../specs/008-secure-deployment/plan.md","title":"Secure Cloudflare deployment plan"},{"id":"mealdb-plan","resource":"../../specs/009-mealdb-browse-import/plan.md","title":"TheMealDB browse and import plan"},{"id":"recipe-migration","resource":"../../migrations/0001_recipe_library.sql","title":"Recipe Library D1 migration"},{"id":"url-import-migration","resource":"../../migrations/0002_url_imports.sql","title":"URL import migration"},{"id":"import-approval-migration","resource":"../../migrations/0003_import_approvals.sql","title":"Import approval migration"},{"id":"text-import-migration","resource":"../../migrations/0004_text_imports.sql","title":"Text import migration"},{"id":"pdf-import-migration","resource":"../../migrations/0005_pdf_imports.sql","title":"PDF import migration"},{"id":"pdf-ocr-migration","resource":"../../migrations/0006_pdf_ocr_attempts.sql","title":"PDF OCR attempt migration"},{"id":"mealdb-import-migration","resource":"../../migrations/0007_mealdb_imports.sql","title":"TheMealDB import migration"},{"id":"worker-config","resource":"../../wrangler.jsonc","title":"Worker configuration"},{"id":"package","resource":"../../package.json","title":"Project scripts and dependencies"},{"id":"usage-dashboard-plan","resource":"../../.litespec/usage-cost-dashboard/plan.md","title":"Usage and Costs dashboard plan"},{"id":"cooking-mode-spec","resource":"../../.tinyspec/cooking-mode.md","title":"Cooking Mode TinySpec"},{"id":"meal-planning-plan","resource":"../../.litespec/meal-planning-grocery-list/plan.md","title":"Meal Planning and Grocery Lists implementation plan"},{"id":"meal-planning-migration","resource":"../../migrations/0011_meal_planning_grocery_lists.sql","title":"Meal Planning and Grocery Lists migration"}]
 sdd: {"profile_version":1,"assumptions":[]}
 ---
 
@@ -21,6 +21,8 @@ sdd: {"profile_version":1,"assumptions":[]}
   import attempts. Each approved import records a unique `approved_recipe_id`; the recipe schema
   reserves an ownership column for future multi-user support. Private R2 binding `RECIPE_SOURCES`
   retains original PDF and image sources without exposing public object URLs.
+- D1 also holds Sunday-keyed weekly dinner assignments and grocery-list snapshots. Generated and custom
+  grocery rows remain separate; week revisions make a recipe-derived list visibly stale until explicitly updated.
 
 ## Relationships and flows
 
@@ -76,6 +78,9 @@ sdd: {"profile_version":1,"assumptions":[]}
   provider credentials or raw responses.
 - `/recipes/:recipeId/cook` reuses the typed recipe-read service and keeps selected instruction position
   only in browser memory; it does not mutate the recipe or call a new Worker endpoint.
+- `/meal-plan` reads one selected week through typed browser services. Worker-owned `/api/meal-plans`
+  routes assign/remove dinners, generate/update deterministic grocery snapshots, and mutate custom/checklist
+  items; no route invokes AI or an external provider.
 - Verification spans React component tests, Worker tests, local binding integration tests, and
   Playwright responsive journeys at 320, 768, and 1440 CSS pixels.
 
@@ -100,3 +105,6 @@ sdd: {"profile_version":1,"assumptions":[]}
 - TheMealDB provider client makes server-side official API requests only, does not expose raw upstream
   payloads or provider credentials, makes no AI call, and never auto-saves. Its `recipe_imports` history
   uses `mealdb` while approved recipes retain the existing URL-source persistence shape.
+- Grocery generation only reads planned recipes' ordered `original_text` lines, groups case-insensitive
+  whitespace-normalized exact matches, and classifies items locally. It never sums quantities or silently
+  refreshes an existing checklist; retained custom items and eligible checked state survive explicit updates.

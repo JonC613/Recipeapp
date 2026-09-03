@@ -13,6 +13,7 @@ export function AppShell() {
         <NavLink className="brand" to="/" end>Recipe Library</NavLink>
         <nav aria-label="Primary navigation">
           <NavLink to="/" end>Library</NavLink>
+          <NavLink to="/meal-plan">Meal plan</NavLink>
           <NavLink to="/recipes/import">Import</NavLink>
           <NavLink to="/admin/usage">Usage</NavLink>
         </nav>

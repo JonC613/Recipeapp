@@ -56,3 +56,7 @@
 - **Cooking Mode update (approved):** Recorded the deployed presentation-only cooking route: one local
   instruction at a time, bounded next/previous controls, visible ingredients, responsive coverage, and no
   recipe mutation or new API dependency. Source: `.tinyspec/cooking-mode.md`.
+- **Meal Planning and Grocery Lists update (approved):** Recorded the deployed Sunday-based dinner-plan
+  and persistent grocery-checklist capability: D1 week revisions, explicit deterministic generation/update,
+  exact-line grouping, local sections, custom items, and no AI/provider calls. Sources:
+  `.litespec/meal-planning-grocery-list/` and `migrations/0011_meal_planning_grocery_lists.sql`.
