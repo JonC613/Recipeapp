@@ -3,7 +3,7 @@ import { RecipeChatError, type RecipeChatContext, type RecipeChatHistoryItem, ty
 
 function responseSchema(candidateIds: string[]) {
   return {
-    type: 'object', additionalProperties: false, required: ['outcome', 'citationIds'], properties: {
+    type: 'object', additionalProperties: false, required: ['outcome', 'answer', 'message', 'citationIds'], properties: {
       outcome: { type: 'string', enum: ['answer', 'no_match', 'clarification'] }, answer: { type: 'string', maxLength: 2400 }, message: { type: 'string', maxLength: 800 },
       citationIds: { type: 'array', maxItems: 12, items: { type: 'string', enum: candidateIds } },
     },
@@ -17,8 +17,8 @@ function parseResult(value: unknown): RecipeChatProviderResult {
   const payload = value as ProviderPayload
   if (payload.outcome !== 'answer' && payload.outcome !== 'no_match' && payload.outcome !== 'clarification') throw new RecipeChatError('INVALID_OUTPUT', 'INVALID_OUTCOME')
   if (!Array.isArray(payload.citationIds) || payload.citationIds.length > 12 || !payload.citationIds.every((id) => typeof id === 'string' && id.length > 0 && id.length <= 128)) throw new RecipeChatError('INVALID_OUTPUT', 'INVALID_CITATIONS')
-  if (payload.outcome === 'answer') { if (typeof payload.answer !== 'string' || !payload.answer.trim() || payload.answer.length > 2400 || !payload.citationIds.length) throw new RecipeChatError('INVALID_OUTPUT', 'INVALID_ANSWER'); return { outcome: 'answer', answer: payload.answer.trim(), citationIds: payload.citationIds } }
-  if (payload.citationIds.length || typeof payload.message !== 'string' || !payload.message.trim()) throw new RecipeChatError('INVALID_OUTPUT', 'INVALID_NON_ANSWER')
+  if (payload.outcome === 'answer') { if (typeof payload.answer !== 'string' || !payload.answer.trim() || payload.answer.length > 2400 || !payload.citationIds.length || typeof payload.message !== 'string') throw new RecipeChatError('INVALID_OUTPUT', 'INVALID_ANSWER'); return { outcome: 'answer', answer: payload.answer.trim(), citationIds: payload.citationIds } }
+  if (payload.citationIds.length || typeof payload.message !== 'string' || !payload.message.trim() || typeof payload.answer !== 'string') throw new RecipeChatError('INVALID_OUTPUT', 'INVALID_NON_ANSWER')
   return { outcome: payload.outcome, message: payload.message.trim(), citationIds: [] }
 }
 
