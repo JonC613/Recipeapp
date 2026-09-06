@@ -5,6 +5,7 @@ import { handleImageImport, handleImageVision, handleImport, handleImportApprova
 import { handleMealDb } from './routes/mealdb.js'
 import { handleUsage } from './routes/usage.js'
 import { handleMealPlans } from './routes/meal-plans.js'
+import { handleRecipeChat } from './routes/recipe-chat.js'
 
 export default {
   fetch(request, env) {
@@ -14,6 +15,7 @@ export default {
     if (pathname === '/api/admin/usage') return handleUsage(request, env)
     if (pathname === '/api/recipes') return handleRecipes(request, env)
     if (pathname === '/api/meal-plans' || pathname.startsWith('/api/meal-plans/')) return handleMealPlans(request, env, pathname)
+    if (pathname === '/api/chat/recipes') return handleRecipeChat(request, env)
     if (pathname === '/api/import/url' && request.method === 'POST') return handleUrlImport(request, env)
     if (pathname === '/api/import/text' && request.method === 'POST') return handleTextImport(request, env)
     if (pathname === '/api/import/mealdb' && request.method === 'POST') return handleMealDbImport(request, env)

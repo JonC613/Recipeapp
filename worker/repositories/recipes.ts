@@ -1,5 +1,6 @@
 import type { NormalizedManualRecipe, RecipeSource } from '../../src/domain/recipe/schema.js'
 import type { RecipeSearchCriteria } from '../../src/domain/recipe/search.js'
+import type { RecipeChatContext } from '../services/ai/recipe-chat.js'
 
 export interface StoredRecipe extends NormalizedManualRecipe {
   id: string
@@ -58,6 +59,70 @@ export async function listRecipes(db: D1Database, criteria: RecipeSearchCriteria
   const where = clauses.length ? ` WHERE ${clauses.join(' AND ')}` : ''
   const { results } = await db.prepare(`SELECT r.id, r.title, r.favorite, r.prep_minutes, r.cook_minutes, r.category, r.updated_at FROM recipes r${where} ORDER BY r.updated_at DESC`).bind(...values).all<{ id: string; title: string; favorite: number; prep_minutes: number | null; cook_minutes: number | null; category: string | null; updated_at: string }>()
   return results.map((row) => ({ id: row.id, title: row.title, favorite: row.favorite === 1, prepMinutes: row.prep_minutes ?? undefined, cookMinutes: row.cook_minutes ?? undefined, category: row.category ?? undefined, updatedAt: row.updated_at }))
+}
+
+const chatStopWords = new Set(['a', 'an', 'and', 'are', 'at', 'be', 'best', 'can', 'do', 'for', 'from', 'get', 'give', 'have', 'i', 'in', 'is', 'it', 'list', 'me', 'my', 'of', 'or', 'recipe', 'recipes', 'show', 'that', 'the', 'to', 'use', 'uses', 'using', 'what', 'which', 'with'])
+const MAX_CHAT_TERMS = 8
+const MAX_CHAT_CANDIDATES = 12
+const cap = (value: string | undefined, length: number): string | undefined => value ? value.slice(0, length) : undefined
+const escapeLike = (value: string) => value.replace(/[\\%_]/g, '\\$&')
+type ChatQuery = { terms: string[]; excluded?: string; maxMinutes?: number; inclusive?: boolean; clarification?: string }
+export const parseRecipeChatQuery = (question: string): ChatQuery => {
+  const lower = question.toLowerCase()
+  const time = lower.match(/\b(under|less than|at most|no more than)\s+(\d{1,3})\s*(?:minutes?|mins?)\b|\b(\d{1,3})\s*(?:minutes?|mins?)\s+or\s+less\b/)
+  const maxMinutes = time ? Number(time[2] ?? time[3]) : undefined
+  const inclusive = Boolean(time && (time[1] === 'at most' || time[1] === 'no more than' || time[3]))
+  const exclusion = lower.match(/\b(?:without|no)\s+([a-z][a-z -]{1,48}?)(?=\s+(?:under|less than|at most|no more than)\s+\d|[?.!,]|$)/)
+  const excluded = exclusion?.[1]?.trim()
+  const stripped = lower.replace(time?.[0] ?? '', ' ').replace(exclusion?.[0] ?? '', ' ')
+  const terms = [...new Set((stripped.match(/[a-z0-9][a-z0-9'-]*/g) ?? []).filter((term) => term.length > 1 && !chatStopWords.has(term)))].slice(0, MAX_CHAT_TERMS)
+  return { terms, excluded, maxMinutes, inclusive }
+}
+
+type ChatRow = Pick<RecipeRow, 'id' | 'title' | 'description' | 'servings' | 'prep_minutes' | 'cook_minutes' | 'total_minutes' | 'cuisine' | 'category' | 'notes' | 'favorite'>
+
+const effectiveMinutes = (row: ChatRow) => row.total_minutes ?? (row.prep_minutes !== null && row.cook_minutes !== null ? row.prep_minutes + row.cook_minutes : undefined)
+
+export async function listRecipeChatContext(db: D1Database, question: string): Promise<RecipeChatContext[]> {
+  const query = parseRecipeChatQuery(question)
+  if (query.clarification || (!query.terms.length && query.maxMinutes === undefined && !query.excluded)) return []
+  const clauses: string[] = []
+  const values: Array<string | number> = []
+  const scores: string[] = []
+  for (const term of query.terms) {
+    const value = `%${escapeLike(term)}%`
+    clauses.push(`(r.title LIKE ? COLLATE NOCASE OR r.description LIKE ? COLLATE NOCASE OR r.cuisine LIKE ? COLLATE NOCASE OR r.category LIKE ? COLLATE NOCASE OR r.notes LIKE ? COLLATE NOCASE OR EXISTS (SELECT 1 FROM recipe_tags rt WHERE rt.recipe_id = r.id AND rt.tag LIKE ? COLLATE NOCASE) OR EXISTS (SELECT 1 FROM recipe_ingredients ri WHERE ri.recipe_id = r.id AND (ri.original_text LIKE ? COLLATE NOCASE OR ri.ingredient LIKE ? COLLATE NOCASE)) OR EXISTS (SELECT 1 FROM recipe_instructions rs WHERE rs.recipe_id = r.id AND rs.text LIKE ? COLLATE NOCASE))`)
+    values.push(value, value, value, value, value, value, value, value, value)
+    scores.push(`CASE WHEN r.title LIKE ? ESCAPE '\\' COLLATE NOCASE THEN 4 WHEN EXISTS (SELECT 1 FROM recipe_ingredients sri WHERE sri.recipe_id=r.id AND (sri.original_text LIKE ? ESCAPE '\\' COLLATE NOCASE OR sri.ingredient LIKE ? ESCAPE '\\' COLLATE NOCASE)) THEN 3 WHEN r.description LIKE ? ESCAPE '\\' COLLATE NOCASE THEN 1 ELSE 0 END`)
+  }
+  const where = clauses.length ? `(${clauses.join(' OR ')})` : '1=1'
+  if (query.excluded) { const value = `%${escapeLike(query.excluded)}%`; values.push(value, value); }
+  const excludedClause = query.excluded ? ` AND NOT EXISTS (SELECT 1 FROM recipe_ingredients ex WHERE ex.recipe_id=r.id AND (ex.original_text LIKE ? ESCAPE '\\' COLLATE NOCASE OR ex.ingredient LIKE ? ESCAPE '\\' COLLATE NOCASE))` : ''
+  const durationClause = query.maxMinutes === undefined ? '' : ` AND COALESCE(r.total_minutes, CASE WHEN r.prep_minutes IS NOT NULL AND r.cook_minutes IS NOT NULL THEN r.prep_minutes + r.cook_minutes END) ${query.inclusive ? '<=' : '<'} ?`
+  if (query.maxMinutes !== undefined) values.push(query.maxMinutes)
+  const scoreValues = query.terms.flatMap((term) => { const value = `%${escapeLike(term)}%`; return [value, value, value, value] })
+  const { results } = await db.prepare(`SELECT r.id, r.title, r.description, r.servings, r.prep_minutes, r.cook_minutes, r.total_minutes, r.cuisine, r.category, r.notes, r.favorite FROM recipes r WHERE ${where}${excludedClause}${durationClause} ORDER BY (${scores.length ? scores.join(' + ') : '0'}) DESC, r.title COLLATE NOCASE, r.id LIMIT ${MAX_CHAT_CANDIDATES + 1}`).bind(...values, ...scoreValues).all<ChatRow>()
+  const rows = results.slice(0, MAX_CHAT_CANDIDATES)
+  if (!rows.length) return []
+  const placeholders = rows.map(() => '?').join(',')
+  const ids = rows.map((row) => row.id)
+  const [ingredients, instructions, tags] = await Promise.all([
+    db.prepare(`SELECT recipe_id, original_text, position FROM recipe_ingredients WHERE recipe_id IN (${placeholders}) ORDER BY recipe_id, position`).bind(...ids).all<{ recipe_id: string; original_text: string }>(),
+    db.prepare(`SELECT recipe_id, text, step_number FROM recipe_instructions WHERE recipe_id IN (${placeholders}) ORDER BY recipe_id, step_number`).bind(...ids).all<{ recipe_id: string; text: string }>(),
+    db.prepare(`SELECT recipe_id, tag FROM recipe_tags WHERE recipe_id IN (${placeholders}) ORDER BY recipe_id, tag COLLATE NOCASE`).bind(...ids).all<{ recipe_id: string; tag: string }>(),
+  ])
+  const group = <T extends { recipe_id: string }>(items: T[]) => items.reduce((map, item) => { (map.get(item.recipe_id) ?? map.set(item.recipe_id, []).get(item.recipe_id)!).push(item); return map }, new Map<string, T[]>())
+  const ingredientMap = group(ingredients.results), instructionMap = group(instructions.results), tagMap = group(tags.results)
+  return rows.map((row) => ({ id: row.id, title: cap(row.title, 180) ?? 'Untitled recipe', description: cap(row.description ?? undefined, 500), cuisine: cap(row.cuisine ?? undefined, 100), category: cap(row.category ?? undefined, 100), tags: (tagMap.get(row.id) ?? []).slice(0, 12).map((tag) => tag.tag.slice(0, 80)), notes: cap(row.notes ?? undefined, 700), ingredients: (ingredientMap.get(row.id) ?? []).slice(0, 30).map((item) => item.original_text.slice(0, 240)), instructions: (instructionMap.get(row.id) ?? []).slice(0, 16).map((item) => item.text.slice(0, 360)), servings: row.servings ?? undefined, prepMinutes: row.prep_minutes ?? undefined, cookMinutes: row.cook_minutes ?? undefined, totalMinutes: effectiveMinutes(row), favorite: row.favorite === 1 }))
+}
+
+/** Re-reads cited recipes for a transient follow-up; never trusts client-provided titles or fields. */
+export async function listRecipeChatContextByIds(db: D1Database, ids: string[]): Promise<RecipeChatContext[]> {
+  const unique = [...new Set(ids)].slice(0, MAX_CHAT_CANDIDATES)
+  const recipes = await Promise.all(unique.map((id) => getRecipe(db, id)))
+  return recipes.filter((recipe): recipe is StoredRecipe => Boolean(recipe)).map((recipe) => ({
+    id: recipe.id, title: cap(recipe.title, 180) ?? 'Untitled recipe', description: cap(recipe.description, 500), cuisine: cap(recipe.cuisine, 100), category: cap(recipe.category, 100), tags: recipe.tags.slice(0, 12).map((tag) => tag.slice(0, 80)), notes: cap(recipe.notes, 700), ingredients: recipe.ingredients.slice(0, 30).map((ingredient) => ingredient.originalText.slice(0, 240)), instructions: recipe.instructions.slice(0, 16).map((instruction) => instruction.text.slice(0, 360)), servings: recipe.servings, prepMinutes: recipe.prepMinutes, cookMinutes: recipe.cookMinutes, totalMinutes: recipe.totalMinutes ?? (recipe.prepMinutes !== undefined && recipe.cookMinutes !== undefined ? recipe.prepMinutes + recipe.cookMinutes : undefined), favorite: recipe.favorite,
+  }))
 }
 
 export async function getRecipe(db: D1Database, id: string): Promise<StoredRecipe | undefined> {

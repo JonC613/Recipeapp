@@ -60,3 +60,11 @@
   and persistent grocery-checklist capability: D1 week revisions, explicit deterministic generation/update,
   exact-line grouping, local sections, custom items, and no AI/provider calls. Sources:
   `.litespec/meal-planning-grocery-list/` and `migrations/0011_meal_planning_grocery_lists.sql`.
+
+## 2026-09-03
+
+- **Recipe Chat Agent update (approved):** Recorded the implemented owner-facing, read-only recipe-chat
+  capability: bounded deterministic saved-recipe retrieval, one Worker-owned structured OpenAI response,
+  server-validated recipe citations, session-only browser transcript, safe no-match/retry outcomes, and no
+  migration, vector retrieval, persistent chat storage, or write action. Sources:
+  `.litespec/recipe-chat-agent/` and `worker/routes/recipe-chat.ts`.
