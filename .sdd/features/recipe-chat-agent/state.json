@@ -1,0 +1,194 @@
+{
+  "artifacts": [
+    {
+      "approval": {
+        "actions": [
+          "implementation"
+        ],
+        "at": "2026-09-08T23:16:41Z",
+        "by": "human:owner"
+      },
+      "approved_fingerprint": "sha256:480369a70ae7ffd1e860226f091d3c5207807dcbacc943aa9aeccf0189d6ebc0",
+      "path": ".litespec/recipe-chat-agent/spec.md"
+    },
+    {
+      "approval": {
+        "actions": [
+          "implementation"
+        ],
+        "at": "2026-09-08T23:16:41Z",
+        "by": "human:owner"
+      },
+      "approved_fingerprint": "sha256:47cb62c8d5159575b513d20ec82c8fcb3fb9a41cbf8c6c460703d0da87e2b6b8",
+      "path": ".litespec/recipe-chat-agent/plan.md"
+    },
+    {
+      "approval": {
+        "actions": [
+          "implementation"
+        ],
+        "at": "2026-09-08T23:16:41Z",
+        "by": "human:owner"
+      },
+      "approved_fingerprint": "sha256:4a82830c1ce2fb0f5c9dcd23a4bf7286185319d6f329ccd5c842a55262053cc9",
+      "path": ".litespec/recipe-chat-agent/tests.md"
+    }
+  ],
+  "authorization": {
+    "allowed": [],
+    "excluded": []
+  },
+  "blockers": [],
+  "criteria": [
+    "AC-01.1",
+    "AC-01.2",
+    "AC-01.3",
+    "AC-01.4",
+    "AC-02.1",
+    "AC-02.2",
+    "AC-02.3",
+    "AC-03.1",
+    "AC-03.2",
+    "AC-03.3",
+    "AC-04.1",
+    "AC-04.2",
+    "AC-04.3",
+    "AC-04.4",
+    "AC-04.5",
+    "AC-05.1",
+    "AC-05.2",
+    "AC-05.3",
+    "AC-05.4",
+    "AC-05.5",
+    "AC-06.1",
+    "AC-06.2",
+    "AC-06.3",
+    "AC-06.4",
+    "AC-07.1",
+    "AC-07.2",
+    "AC-07.3",
+    "AC-07.4"
+  ],
+  "evidence": [
+    {
+      "at": "2026-09-08T23:21:52Z",
+      "command": "npm test -- tests/component/recipe-chat.test.tsx",
+      "criterion": "AC-01.2",
+      "detail": "Component flow covers submission, answer rendering, and recovery.",
+      "exit_code": 0,
+      "id": "E-001",
+      "method": "automated",
+      "recorded_by": "process:codex",
+      "result": "pass",
+      "snapshot": "content:dc5963153aac57493c463153224cfe7d73adbbfc68da6078f0992b4b1f26a635",
+      "source": "tests/component/recipe-chat.test.tsx"
+    },
+    {
+      "at": "2026-09-08T23:21:54Z",
+      "command": "npm run test:worker -- tests/worker/recipe-chat.test.ts tests/worker/openai-recipe-chat.test.ts",
+      "criterion": "AC-02.1",
+      "detail": "No-match path and provider avoidance passed.",
+      "exit_code": 0,
+      "id": "E-002",
+      "method": "automated",
+      "recorded_by": "process:codex",
+      "result": "pass",
+      "snapshot": "content:dc5963153aac57493c463153224cfe7d73adbbfc68da6078f0992b4b1f26a635",
+      "source": "tests/worker/recipe-chat.test.ts"
+    },
+    {
+      "at": "2026-09-08T23:21:57Z",
+      "command": "npm run test:worker -- tests/worker/recipe-chat.test.ts tests/worker/openai-recipe-chat.test.ts",
+      "criterion": "AC-02.3",
+      "detail": "Invalid citation output maps to a safe error.",
+      "exit_code": 0,
+      "id": "E-003",
+      "method": "automated",
+      "recorded_by": "process:codex",
+      "result": "pass",
+      "snapshot": "content:dc5963153aac57493c463153224cfe7d73adbbfc68da6078f0992b4b1f26a635",
+      "source": "tests/worker/recipe-chat.test.ts"
+    },
+    {
+      "at": "2026-09-08T23:21:58Z",
+      "command": "npm run test:worker -- tests/worker/recipe-chat.test.ts tests/worker/openai-recipe-chat.test.ts",
+      "criterion": "AC-03.3",
+      "detail": "Scope-breaking output is rejected.",
+      "exit_code": 0,
+      "id": "E-004",
+      "method": "automated",
+      "recorded_by": "process:codex",
+      "result": "pass",
+      "snapshot": "content:dc5963153aac57493c463153224cfe7d73adbbfc68da6078f0992b4b1f26a635",
+      "source": "tests/worker/recipe-chat.test.ts"
+    },
+    {
+      "at": "2026-09-08T23:22:08Z",
+      "command": "npx playwright test tests/e2e/recipe-chat.spec.ts",
+      "criterion": "AC-01.1",
+      "detail": "Recipe Chat entry point and responsive navigation passed.",
+      "exit_code": 0,
+      "id": "E-005",
+      "method": "automated",
+      "recorded_by": "process:codex",
+      "result": "pass",
+      "snapshot": "content:dc5963153aac57493c463153224cfe7d73adbbfc68da6078f0992b4b1f26a635",
+      "source": "tests/e2e/recipe-chat.spec.ts"
+    },
+    {
+      "at": "2026-09-08T23:22:10Z",
+      "command": "npx playwright test tests/e2e/recipe-chat.spec.ts",
+      "criterion": "AC-01.3",
+      "detail": "Responsive cited-recipe navigation passed.",
+      "exit_code": 0,
+      "id": "E-006",
+      "method": "automated",
+      "recorded_by": "process:codex",
+      "result": "pass",
+      "snapshot": "content:dc5963153aac57493c463153224cfe7d73adbbfc68da6078f0992b4b1f26a635",
+      "source": "tests/e2e/recipe-chat.spec.ts"
+    },
+    {
+      "at": "2026-09-08T23:22:11Z",
+      "command": "npm test -- tests/component/recipe-chat.test.tsx",
+      "criterion": "AC-02.2",
+      "detail": "Retryable unavailable path passed.",
+      "exit_code": 0,
+      "id": "E-007",
+      "method": "automated",
+      "recorded_by": "process:codex",
+      "result": "pass",
+      "snapshot": "content:dc5963153aac57493c463153224cfe7d73adbbfc68da6078f0992b4b1f26a635",
+      "source": "tests/component/recipe-chat.test.tsx"
+    }
+  ],
+  "feature": "recipe-chat-agent",
+  "interaction_mode": "collaborative",
+  "lifecycle": "implemented",
+  "release": null,
+  "schema_version": 1,
+  "tasks": [
+    {
+      "id": "P1-T1",
+      "status": "done"
+    },
+    {
+      "id": "P1-T2",
+      "status": "done"
+    },
+    {
+      "id": "P1-T3",
+      "status": "done"
+    },
+    {
+      "id": "P2-T1",
+      "status": "done"
+    },
+    {
+      "id": "P2-T2",
+      "status": "done"
+    }
+  ],
+  "tier": "lite",
+  "updated_at": "2026-09-08T23:22:11Z"
+}
