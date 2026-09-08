@@ -8,10 +8,10 @@ function pasteImage(target: HTMLElement, files: File[]) {
   target.dispatchEvent(new ClipboardEvent('paste', { bubbles: true, clipboardData: clipboard }))
 }
 
-test('requires an image before private retention', async () => {
+test('requires an image before upload', async () => {
   const onImport = vi.fn()
   const screen = await render(<ImageRecipeImport onImport={onImport} />)
-  await screen.getByRole('button', { name: 'Retain image' }).click()
+  await screen.getByRole('button', { name: 'Upload image' }).click()
   await expect.element(screen.getByRole('alert')).toHaveTextContent('Choose one JPEG')
   expect(onImport).not.toHaveBeenCalled()
 })

@@ -1,11 +1,11 @@
 ---
 feature: usage-cost-dashboard
 artifact: plan
-status: implementing
+status: done
 owner: user
 version: 0.3
 created: 2026-08-31
-updated: 2026-09-01
+updated: 2026-09-08
 spec_version: 0.1
 ---
 
@@ -107,19 +107,19 @@ All values remain absent from the endpoint response, logs, fixtures, and fronten
 
 ### Phase 1 — Safe reporting foundation and application activity
 
-- [ ] **P1-T1 — Define dashboard domain contract and range/budget evaluation**
+- [x] **P1-T1 — Define dashboard domain contract and range/budget evaluation**
   - Covers: R-01, R-05, R-06, AC-01.1, AC-04.1, AC-04.2, AC-04.3
   - Depends on: None
   - Work: Add fixed range parsing, safe capability/result types, USD budget validation, and pure status evaluation with no provider dependency.
   - Verify: Unit tests cover valid/invalid ranges, absent/invalid budgets, threshold boundary, exceeded, and unknown cost.
 
-- [ ] **P1-T2 — Aggregate Recipeapp activity read-only from D1**
+- [x] **P1-T2 — Aggregate Recipeapp activity read-only from D1**
   - Covers: R-02, AC-01.2, AC-01.3, AC-05.3, NFR-02
   - Depends on: P1-T1
   - Work: Add repository aggregate queries for recipes/import statuses/source types and persisted AI-attempt signals; map results to the safe activity DTO.
   - Verify: Local D1 integration tests prove period filtering, zero categories, source grouping, AI distinction, and no write statements.
 
-- [ ] **P1-T3 — Deliver the admin usage endpoint with partial failure handling**
+- [x] **P1-T3 — Deliver the admin usage endpoint with partial failure handling**
   - Covers: R-06, R-07, AC-05.2, AC-05.3, NFR-01, NFR-03, NFR-04
   - Depends on: P1-T1, P1-T2
   - Work: Add Worker route/handler; validate GET-only access and range; return safe summaries; wire stubbed optional-client availability states; bound external calls and safe error mapping.
@@ -127,25 +127,25 @@ All values remain absent from the endpoint response, logs, fixtures, and fronten
 
 ### Phase 2 — Provider adapters and protected interface
 
-- [ ] **P2-T1 — Implement Cloudflare analytics adapter**
+- [x] **P2-T1 — Implement Cloudflare analytics adapter**
   - Covers: R-03, AC-02.1, AC-02.2, AC-02.3, NFR-01, NFR-04
   - Depends on: P1-T3
   - Work: Add a timeout-bounded GraphQL client; normalize permitted Workers/D1/R2 metrics and configure optional read-only secret bindings without values.
   - Verify: Adapter unit tests validate request shape, metric units, malformed/partial payload behavior, timeout, credential absence, and redaction.
 
-- [ ] **P2-T2 — Implement OpenAI organization usage/cost adapter**
+- [x] **P2-T2 — Implement OpenAI organization usage/cost adapter**
   - Covers: R-04, AC-03.1, AC-03.2, AC-03.3, NFR-01, NFR-04
   - Depends on: P1-T3
   - Work: Add a timeout-bounded client for organization Usage and Costs, normalize date buckets/tokens/USD cost, and document the separate admin reporting secret.
   - Verify: Adapter tests prove cost takes precedence over any estimate, ordinary processing-key absence becomes not-configured, malformed payloads are safe, and no key reaches results/logs.
 
-- [ ] **P2-T3 — Build the responsive Usage & Costs page**
+- [x] **P2-T3 — Build the responsive Usage & Costs page**
   - Covers: R-01–R-07, AC-01.1–AC-05.2, NFR-05
   - Depends on: P1-T3
   - Work: Add typed browser service, route, owner navigation link, period controls, activity/resource/cost/budget cards, loading and safe partial-error states.
   - Verify: Component tests cover range change, zero state, each capability state, budget labels, semantic status text, and redacted display; Playwright covers 320/768/1440 layouts.
 
-- [ ] **P2-T4 — Validate deployment readiness and owner configuration instructions**
+- [x] **P2-T4 — Validate deployment readiness and owner configuration instructions**
   - Covers: AC-05.1–AC-05.3, NFR-01–NFR-04
   - Depends on: P2-T1, P2-T2, P2-T3
   - Work: Document least-privilege credential setup separately from committed configuration, regenerate Worker types, run full checks, and verify the deployed hostname remains Cloudflare Access-protected before/after rollout.

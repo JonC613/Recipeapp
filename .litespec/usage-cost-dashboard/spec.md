@@ -1,11 +1,11 @@
 ---
 feature: usage-cost-dashboard
 artifact: spec
-status: implementing
+status: done
 owner: user
 version: 0.1
 created: 2026-08-31
-updated: 2026-08-31
+updated: 2026-09-08
 ---
 
 # Specification: Usage and Cost Dashboard

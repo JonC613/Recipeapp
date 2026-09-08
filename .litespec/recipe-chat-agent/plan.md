@@ -5,7 +5,7 @@ status: implementing
 owner: user
 version: 0.3
 created: 2026-09-03
-updated: 2026-09-05
+updated: 2026-09-08
 spec_version: 0.3
 ---
 
@@ -163,19 +163,19 @@ The Worker accepts a normalized bounded question. It returns `no_match` with no 
 
 ### Phase 1 — Safe Worker retrieval and provider contract
 
-- [ ] **P1-T1 — Add bounded read-only recipe chat context retrieval**
+- [x] **P1-T1 — Add bounded read-only recipe chat context retrieval**
   - Covers: R-02, AC-02.1, AC-03.1
   - Depends on: None
   - Work: Define internal context projection and normalized lexical candidate selection in the recipe repository, including empty-library/no-match outcomes and hard limits; add no mutation or migration.
   - Verify: Repository/integration tests demonstrate deterministic matches, zero-candidate behavior, and bounded safe fields.
 
-- [ ] **P1-T2 — Add strict Worker-owned chat provider and response mapping**
+- [x] **P1-T2 — Add strict Worker-owned chat provider and response mapping**
   - Covers: R-02, R-03, AC-01.3, AC-02.3, AC-03.2, AC-03.3
   - Depends on: P1-T1
   - Work: Define `RecipeChatProvider`, strict structured answer schema, bounded prompt construction, safe extraction/mapping, and citation validation/deduplication against candidates. Reuse Worker-only configuration and never expose raw payloads.
   - Verify: Provider unit tests cover valid structured output, malformed output, hostile content, unknown/duplicate citations, and one request per valid query.
 
-- [ ] **P1-T3 — Add the chat API route and safe error behavior**
+- [x] **P1-T3 — Add the chat API route and safe error behavior**
   - Covers: R-01, R-02, R-03, R-04, R-05, AC-02.1, AC-02.2, AC-02.3, AC-03.1, AC-03.2
   - Depends on: P1-T1, P1-T2
   - Work: Add route dispatch and request validation; map blank/oversized input, no-match, unavailable, and invalid-output conditions to safe application responses.
@@ -183,13 +183,13 @@ The Worker accepts a normalized bounded question. It returns `no_match` with no 
 
 ### Phase 2 — Session-only chat experience
 
-- [ ] **P2-T1 — Add typed browser client, route, navigation, and accessible chat page**
+- [x] **P2-T1 — Add typed browser client, route, navigation, and accessible chat page**
   - Covers: US-01, AC-01.1, AC-01.2, AC-01.3, AC-01.4, NFR-03
   - Depends on: P1-T3
   - Work: Add safe DTOs and client wrapper; render the session-only transcript, submit/disabled state, scope disclosure, citations, no-match guidance, retryable error, and an AppShell navigation link.
   - Verify: Component tests cover form validation, in-progress UI, answer/citations, retry/no-match states, and state reset on remount.
 
-- [ ] **P2-T2 — Verify end-to-end compatibility and non-mutation behavior**
+- [x] **P2-T2 — Verify end-to-end compatibility and non-mutation behavior**
   - Covers: NFR-04, AC-03.1, AC-03.2, AC-03.3
   - Depends on: P2-T1
   - Work: Add Playwright responsive journeys for a grounded answer, citation navigation, no-match, and retry. Run existing focused regression suites and the approved build/type checks.

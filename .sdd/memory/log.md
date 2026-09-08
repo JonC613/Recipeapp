@@ -68,3 +68,10 @@
   server-validated recipe citations, session-only browser transcript, safe no-match/retry outcomes, and no
   migration, vector retrieval, persistent chat storage, or write action. Sources:
   `.litespec/recipe-chat-agent/` and `worker/routes/recipe-chat.ts`.
+
+## 2026-09-08
+
+- **Release evidence reconciliation:** Read-only Cloudflare checks found all committed remote D1 migrations
+  applied and active Worker release `e686e23d-994d-4043-811d-8f2edec3f5d4` at 100% traffic. An
+  unauthenticated health request was redirected by Cloudflare Access. The owner confirmed the authorized
+  production smoke test on 2026-09-08; this is the current known-good release.

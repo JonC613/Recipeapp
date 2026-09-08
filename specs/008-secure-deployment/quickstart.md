@@ -43,6 +43,16 @@ Validated on 2026-08-30 after the custom-domain configuration change:
 - Rendered authorized application pages contained no provider key, R2 object key, or provider-response
   payload. The unauthenticated response redirected to Access before returning application content.
 
+## Current deployment observation
+
+Read-only Cloudflare checks on 2026-09-08 found that all committed D1 migrations are already applied to
+`recipeapp-db`. The active 100%-routed Worker release was
+`e686e23d-994d-4043-811d-8f2edec3f5d4`, created 2026-09-06. An unauthenticated request to
+`/api/health` received the expected Cloudflare Access redirect before application content.
+
+The owner confirmed the authorized production smoke test on 2026-09-08. This release is the current
+known-good build. Do not infer the source commit from the deployment timestamp alone.
+
 ## Release sequence
 
 1. Review the remote D1 migration list; approve only the committed migrations and confirm the generated
@@ -60,7 +70,8 @@ Validated on 2026-08-30 after the custom-domain configuration change:
 
 If any protected-hostname or smoke check fails, keep Access enabled, select the last known-good Worker
 release in Cloudflare, and retest the blocked and authorized paths. The current known-good release is
-`ab28994a-0e79-4993-9abc-5d8e693d1f59`.
+`e686e23d-994d-4043-811d-8f2edec3f5d4` (2026-09-06; owner smoke confirmed 2026-09-08). The prior
+recorded known-good release is `ab28994a-0e79-4993-9abc-5d8e693d1f59` (2026-08-30).
 
 The owner can locate releases in the Cloudflare Worker deployment history or, from this repository, run
 `npx wrangler deployments list --name recipeapp`. To restore a later failed release, obtain fresh owner

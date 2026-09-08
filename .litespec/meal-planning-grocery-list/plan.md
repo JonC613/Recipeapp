@@ -5,7 +5,7 @@ status: done
 owner: user
 version: 0.1
 created: 2026-09-02
-updated: 2026-09-02
+updated: 2026-09-08
 spec_version: 0.1
 ---
 
@@ -95,25 +95,25 @@ The Worker validates the canonical Sunday week key and day indexes before databa
 
 ### Phase 1 — Durable weekly-plan and grocery-list API
 
-- [ ] **P1-T1 — Add validated meal-plan domain primitives and the D1 migration**
+- [x] **P1-T1 — Add validated meal-plan domain primitives and the D1 migration**
   - Covers: R-01, R-03, R-05, R-06, R-07, R-08, R-09; AC-01.1, AC-02.3, AC-02.4, AC-03.3, AC-03.4
   - Depends on: None
   - Work: Define typed DTOs, week/day validation, Sunday-date helpers, normalization and section classifier; add versioned D1 tables, foreign keys, checks, indexes, and revision maintenance.
   - Verify: Domain unit tests and migration application against local D1 prove valid constraints, Sunday validation, normalization, and classification behavior.
 
-- [ ] **P1-T2 — Implement repository reads, dinner mutations, and stale-state calculation**
+- [x] **P1-T2 — Implement repository reads, dinner mutations, and stale-state calculation**
   - Covers: US-01; AC-01.2, AC-01.3, AC-01.4; AC-03.1
   - Depends on: P1-T1
   - Work: Add bound D1 repository operations for one week, recipe existence checks, assignment replacement/removal, and recipe-delete cleanup/revision behavior.
   - Verify: Local D1 integration tests reload persisted weeks, navigate dates, replace/remove dinners, and verify a changed plan becomes stale after list generation.
 
-- [ ] **P1-T3 — Implement deterministic grocery generation and checklist mutations**
+- [x] **P1-T3 — Implement deterministic grocery generation and checklist mutations**
   - Covers: US-02, US-03, US-04; AC-02.1, AC-02.2, AC-02.3, AC-02.4, AC-02.5, AC-03.2, AC-03.3, AC-03.4, AC-04.1, AC-04.2, AC-04.3, AC-04.4
   - Depends on: P1-T1, P1-T2
   - Work: Build grouped generated rows from planned recipes; implement explicit reconciliation, custom-item creation, check mutation, and single-item removal.
   - Verify: Unit and local D1 tests cover empty plans, repeated recipes, contributor snapshots, custom-item retention, checked-state preservation, and idempotent repeated updates.
 
-- [ ] **P1-T4 — Expose safe Worker routes and typed browser service methods**
+- [x] **P1-T4 — Expose safe Worker routes and typed browser service methods**
   - Covers: R-02, R-04, R-07–R-09; NFR-03, NFR-05, NFR-06
   - Depends on: P1-T2, P1-T3
   - Work: Dispatch the proposed routes, validate request bodies/params, map safe errors, and add `src/services/meal-plans.ts` without changing existing recipe contracts.
@@ -121,13 +121,13 @@ The Worker validates the canonical Sunday week key and day indexes before databa
 
 ### Phase 2 — Weekly planning and grocery-list user experience
 
-- [ ] **P2-T1 — Build the accessible responsive Meal Plan page and recipe assignment flow**
+- [x] **P2-T1 — Build the accessible responsive Meal Plan page and recipe assignment flow**
   - Covers: US-01; AC-01.1–AC-01.5; NFR-01, NFR-02, NFR-03
   - Depends on: P1-T4
   - Work: Add `/meal-plan`, primary navigation, weekly controls, seven dinner slots, saved-recipe chooser/search, replace/remove controls, and detail/Cooking Mode links with semantic loading/error/empty states.
   - Verify: Component tests exercise navigation and slot mutations; Playwright verifies primary flow at 320, 768, and 1440 pixels.
 
-- [ ] **P2-T2 — Build the grocery generation, freshness, and checklist interface**
+- [x] **P2-T2 — Build the grocery generation, freshness, and checklist interface**
   - Covers: US-02–US-04; AC-02.1–AC-04.4; NFR-01–NFR-04, NFR-06
   - Depends on: P1-T4, P2-T1
   - Work: Render generate/update calls, stale messaging, nonempty sections, contributor context, checkboxes, custom-item form, remove controls, and recovery states.
@@ -135,13 +135,13 @@ The Worker validates the canonical Sunday week key and day indexes before databa
 
 ### Phase 3 — Regression evidence and deployment readiness
 
-- [ ] **P3-T1 — Run migration and feature regression verification**
+- [x] **P3-T1 — Run migration and feature regression verification**
   - Covers: All current-release stories and NFRs
   - Depends on: P2-T1, P2-T2
   - Work: Apply the migration locally, run focused suites plus existing recipe, search, and Cooking Mode regression tests; build/typecheck/lint the production bundle.
   - Verify: Passing commands and a clean responsive local walkthrough; no prior critical test regression.
 
-- [ ] **P3-T2 — Prepare production rollout and rollback record**
+- [x] **P3-T2 — Prepare production rollout and rollback record**
   - Covers: NFR-03, NFR-05, NFR-06
   - Depends on: P3-T1
   - Work: Validate migration order against production, deploy the Worker/static-assets bundle, and smoke-test the protected hostname with a non-destructive weekly plan.
