@@ -1,6 +1,7 @@
 import { env, exports } from 'cloudflare:workers'
 import { expect, test } from 'vitest'
 import { applyRecipeMigration } from '../recipe-migration.js'
+import { listRecipeChatContext, listRecipeChatContextByIds, parseRecipeChatQuery } from '../../worker/repositories/recipes.js'
 
 const worker = exports.default as ExportedHandler<Env>
 
@@ -76,4 +77,24 @@ test('filters local D1 recipe titles case-insensitively with a partial query', a
   }
   const response = await worker.fetch(new Request('https://recipeapp.test/api/recipes?q=chIcKeN'), env)
   await expect(response.json()).resolves.toMatchObject([{ title: 'Smoky Chicken Tacos' }])
+})
+
+test('retrieves Recipe Chat matches with deterministic constraints and bulk follow-up hydration', async () => {
+  await applyRecipeMigration(env.DB)
+  const add = async (body: Record<string, unknown>) => worker.fetch(new Request('https://recipeapp.test/api/recipes', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ instructions: [{ text: 'Cook.' }], ...body }) }), env).then((response) => response.json() as Promise<{ id: string }>)
+  const both = await add({ title: 'Chicken Mushroom Supper', ingredients: [{ originalText: 'chicken' }, { originalText: 'mushrooms' }], totalMinutes: 30 })
+  await add({ title: 'Chicken Bowl', ingredients: [{ originalText: 'chicken' }], totalMinutes: 29 })
+  await add({ title: 'Mushroom Bowl', ingredients: [{ originalText: 'mushrooms' }], totalMinutes: 31 })
+  await add({ title: 'Chicken with Mushroom Sauce', ingredients: [{ originalText: 'chicken' }, { originalText: 'mushrooms' }], totalMinutes: 20 })
+  const fallback = await add({ title: 'Quick Chicken', ingredients: [{ originalText: 'chicken' }], prepMinutes: 10, cookMinutes: 20 })
+  await add({ title: 'Unknown-time Chicken', ingredients: [{ originalText: 'chicken' }] })
+
+  expect(parseRecipeChatQuery('chicken without mushrooms')).toMatchObject({ terms: ['chicken'], excluded: 'mushrooms' })
+  const ranked = await listRecipeChatContext(env.DB, 'chicken and mushrooms')
+  expect(ranked[0]).toMatchObject({ id: both.id })
+  const excluded = await listRecipeChatContext(env.DB, 'chicken without mushrooms')
+  expect(excluded.every((recipe) => !recipe.ingredients.join(' ').toLowerCase().includes('mushroom'))).toBe(true)
+  await expect(listRecipeChatContext(env.DB, 'under 30 minutes')).resolves.toEqual(expect.not.arrayContaining([expect.objectContaining({ id: both.id }), expect.objectContaining({ id: fallback.id })]))
+  await expect(listRecipeChatContext(env.DB, '30 minutes or less')).resolves.toEqual(expect.arrayContaining([expect.objectContaining({ id: both.id }), expect.objectContaining({ id: fallback.id })]))
+  await expect(listRecipeChatContextByIds(env.DB, ['missing', fallback.id, both.id])).resolves.toMatchObject([{ id: fallback.id, totalMinutes: 30 }, { id: both.id, totalMinutes: 30 }])
 })
