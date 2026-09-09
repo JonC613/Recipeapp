@@ -4,7 +4,7 @@ import { listRecipeChatContext, listRecipeChatContextByIds, parseRecipeChatQuery
 import { OpenAiRecipeChat } from '../services/ai/openai-recipe-chat.js'
 import { RecipeChatError, type RecipeChatProvider } from '../services/ai/recipe-chat.js'
 
-const MAX_QUESTION_LENGTH = 600, MAX_BODY_BYTES = 16 * 1024, MAX_HISTORY = 3, MAX_HISTORY_CHARS = 8_000
+const MAX_QUESTION_LENGTH = 600, MAX_BODY_BYTES = 16 * 1024, MAX_HISTORY = 3, MAX_HISTORY_CHARS = 8_000, MAX_CONTEXT_CHARS = 24_000
 const noMatchMessage = 'No matching saved recipes were found. Try a different ingredient, dish, or cooking term, or add a recipe first.'
 type Dependencies = { provider?: RecipeChatProvider; listContext?: typeof listRecipeChatContext; listContextByIds?: typeof listRecipeChatContextByIds }
 
@@ -27,6 +27,17 @@ function historyFrom(value: unknown): RecipeChatHistoryItem[] {
   if (history.reduce((sum, item) => sum + item.question.length + item.answer.length + item.citationIds.join('').length, 0) > MAX_HISTORY_CHARS) throw new Error('Conversation context is too long. Start a new conversation.')
   return history
 }
+function boundContext<T>(candidates: T[]): { candidates: T[]; limited: boolean } {
+  let characters = 0
+  const selected: T[] = []
+  for (const candidate of candidates) {
+    const size = JSON.stringify(candidate).length
+    if (characters + size > MAX_CONTEXT_CHARS) break
+    selected.push(candidate)
+    characters += size
+  }
+  return { candidates: selected, limited: selected.length < candidates.length }
+}
 
 export async function handleRecipeChat(request: Request, env: Env, dependencies: Dependencies = {}): Promise<Response> {
   if (request.method !== 'POST') return jsonError('METHOD_NOT_ALLOWED', 'Method not allowed.', false, 405)
@@ -42,6 +53,9 @@ export async function handleRecipeChat(request: Request, env: Env, dependencies:
   try { candidates = asksFollowUp ? await (dependencies.listContextByIds ?? listRecipeChatContextByIds)(env.DB, citedIds) : await (dependencies.listContext ?? listRecipeChatContext)(env.DB, question) }
   catch { return jsonError('SERVICE_UNAVAILABLE', 'Recipe Chat is temporarily unavailable. Please try again.', true, 503) }
   if (candidates.length === 0) return jsonResponse({ outcome: 'no_match', message: noMatchMessage } satisfies RecipeChatResponse)
+  const bounded = boundContext(candidates)
+  candidates = bounded.candidates
+  if (candidates.length === 0) return jsonResponse({ outcome: 'no_match', message: noMatchMessage } satisfies RecipeChatResponse)
   try {
     const result = await (dependencies.provider ?? new OpenAiRecipeChat(env.OPENAI_API_KEY, env.OPENAI_MODEL)).answer(question, candidates, history)
     if (result.outcome && result.outcome !== 'answer') return jsonResponse({ outcome: result.outcome, message: result.message ?? noMatchMessage } satisfies RecipeChatResponse)
@@ -55,9 +69,9 @@ export async function handleRecipeChat(request: Request, env: Env, dependencies:
       return { recipeId, title }
     }).filter((citation): citation is { recipeId: string; title: string } => Boolean(citation))
     if (citations.length === 0) throw new RecipeChatError('INVALID_OUTPUT', 'NO_CITATIONS')
-    return jsonResponse({ outcome: 'answer', answer: result.answer!, citations, ...(candidates.length >= 12 ? { contextLimited: true } : {}) } satisfies RecipeChatResponse)
+    return jsonResponse({ outcome: 'answer', answer: result.answer!, citations, ...(bounded.limited || candidates.length >= 12 ? { contextLimited: true } : {}) } satisfies RecipeChatResponse)
   } catch (error) {
-    if (error instanceof RecipeChatError && error.code === 'INVALID_OUTPUT') { console.warn('Recipe Chat response rejected.', { reason: error.message }); return jsonError('INVALID_OUTPUT', 'Recipe Chat returned an unusable answer. Please try again.', true, 503) }
+    if (error instanceof RecipeChatError && error.code === 'INVALID_OUTPUT') { console.warn('Recipe Chat response rejected.', { category: error.code }); return jsonError('INVALID_OUTPUT', 'Recipe Chat returned an unusable answer. Please try again.', true, 503) }
     return jsonError('SERVICE_UNAVAILABLE', 'Recipe Chat is temporarily unavailable. Please try again.', true, 503)
   }
 }

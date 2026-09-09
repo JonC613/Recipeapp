@@ -62,7 +62,7 @@ export class OpenAiRecipeChat implements RecipeChatProvider {
     if (!output) { console.warn('OpenAI recipe chat output was missing structured text.'); throw new RecipeChatError('INVALID_OUTPUT', 'MISSING_OUTPUT_TEXT') }
     try { return parseResult(JSON.parse(output)) }
     catch (error) {
-      if (error instanceof RecipeChatError) { console.warn('OpenAI recipe chat output failed validation.', { reason: error.message }); throw error }
+      if (error instanceof RecipeChatError) { console.warn('OpenAI recipe chat output failed validation.', { category: error.code }); throw error }
       console.warn('OpenAI recipe chat output was not valid JSON.'); throw new RecipeChatError('INVALID_OUTPUT', 'INVALID_JSON')
     }
   }

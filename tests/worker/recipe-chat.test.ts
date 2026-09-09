@@ -1,7 +1,7 @@
 import { env, exports } from 'cloudflare:workers'
 import { describe, expect, it, vi } from 'vitest'
 import { handleRecipeChat } from '../../worker/routes/recipe-chat.js'
-import type { RecipeChatProvider } from '../../worker/services/ai/recipe-chat.js'
+import type { RecipeChatContext, RecipeChatProvider } from '../../worker/services/ai/recipe-chat.js'
 
 const worker = exports.default as ExportedHandler<Env>
 const request = (question: unknown) => new Request('https://recipeapp.test/api/chat/recipes', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question }) })
@@ -30,6 +30,20 @@ describe('Recipe Chat API', () => {
     const nonmatching = await handleRecipeChat(request('Which recipes use shrimp?'), env, { provider })
     await expect(nonmatching.json()).resolves.toMatchObject({ outcome: 'no_match' })
     expect(provider.answer).not.toHaveBeenCalled()
+  })
+
+  it('limits oversized recipe context before calling the provider', async () => {
+    const candidates: RecipeChatContext[] = [
+      { id: 'shrimp', title: 'Garlic Shrimp', tags: [], ingredients: ['1 pound shrimp'], instructions: ['Cook gently.'], notes: 'a'.repeat(13_000) },
+      { id: 'pasta', title: 'Lemon Pasta', tags: [], ingredients: ['1 lemon'], instructions: ['Toss.'], notes: 'b'.repeat(13_000) },
+    ]
+    const provider: RecipeChatProvider = { answer: vi.fn(async () => ({ answer: 'Make Garlic Shrimp.', citationIds: ['shrimp'] })) }
+    const listContext = vi.fn(async () => candidates)
+
+    const response = await handleRecipeChat(request('What should I make?'), env, { provider, listContext })
+
+    await expect(response.json()).resolves.toEqual({ outcome: 'answer', answer: 'Make Garlic Shrimp.', citations: [{ recipeId: 'shrimp', title: 'Garlic Shrimp' }], contextLimited: true })
+    expect((provider.answer as ReturnType<typeof vi.fn>).mock.calls[0][1]).toHaveLength(1)
   })
 
   it('bounds invalid questions and exposes only safe provider failures', async () => {
