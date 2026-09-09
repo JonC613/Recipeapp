@@ -69,7 +69,9 @@ const escapeLike = (value: string) => value.replace(/[\\%_]/g, '\\$&')
 type ChatQuery = { terms: string[]; excluded?: string; maxMinutes?: number; inclusive?: boolean; clarification?: string }
 export const parseRecipeChatQuery = (question: string): ChatQuery => {
   const lower = question.toLowerCase()
+  if (/\b(?:make|create|generate|write)\b.{0,32}\b(?:new\s+)?recipe\b/.test(lower)) return { terms: [], clarification: 'Recipe Chat can search and compare saved recipes, but it cannot create new recipes.' }
   const time = lower.match(/\b(under|less than|at most|no more than)\s+(\d{1,3})\s*(?:minutes?|mins?)\b|\b(\d{1,3})\s*(?:minutes?|mins?)\s+or\s+less\b/)
+  if (!time && /\b(?:fast|quick|easy|healthy)\b/.test(lower)) return { terms: [], clarification: 'Try a supported time limit such as “under 30 minutes” or “30 minutes or less.”' }
   const maxMinutes = time ? Number(time[2] ?? time[3]) : undefined
   const inclusive = Boolean(time && (time[1] === 'at most' || time[1] === 'no more than' || time[3]))
   const exclusion = lower.match(/\b(?:without|no)\s+([a-z][a-z -]{1,48}?)(?=\s+(?:under|less than|at most|no more than)\s+\d|[?.!,]|$)/)

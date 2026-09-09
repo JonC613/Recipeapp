@@ -32,6 +32,15 @@ describe('Recipe Chat API', () => {
     expect(provider.answer).not.toHaveBeenCalled()
   })
 
+  it('clarifies unsupported speed and recipe-creation requests without calling a provider', async () => {
+    const provider: RecipeChatProvider = { answer: vi.fn() }
+    const fast = await handleRecipeChat(request('Show me something fast'), env, { provider })
+    const creation = await handleRecipeChat(request('Make me a new recipe'), env, { provider })
+    await expect(fast.json()).resolves.toMatchObject({ outcome: 'clarification', message: expect.stringContaining('under 30 minutes') })
+    await expect(creation.json()).resolves.toMatchObject({ outcome: 'clarification', message: expect.stringContaining('cannot create') })
+    expect(provider.answer).not.toHaveBeenCalled()
+  })
+
   it('limits oversized recipe context before calling the provider', async () => {
     const candidates: RecipeChatContext[] = [
       { id: 'shrimp', title: 'Garlic Shrimp', tags: [], ingredients: ['1 pound shrimp'], instructions: ['Cook gently.'], notes: 'a'.repeat(13_000) },
