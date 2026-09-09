@@ -6,7 +6,7 @@ export class RecipeGraphicError extends Error {
 export class OpenAiRecipeGraphic {
   private readonly apiKey: string
   private readonly request: typeof fetch
-  constructor(apiKey: string, request: typeof fetch = fetch) { this.apiKey = apiKey; this.request = request }
+  constructor(apiKey: string, request: typeof fetch = fetch) { this.apiKey = apiKey; this.request = request.bind(globalThis) }
 
   async generate(recipe: { title: string; description?: string; ingredients: Array<{ originalText: string }> }): Promise<Uint8Array> {
     const ingredients = recipe.ingredients.slice(0, 12).map((item) => item.originalText.slice(0, 120))
