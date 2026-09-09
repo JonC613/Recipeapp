@@ -14,7 +14,10 @@ export class OpenAiRecipeGraphic {
     let response: Response
     try {
       response = await this.request('https://api.openai.com/v1/images/generations', { method: 'POST', headers: { authorization: `Bearer ${this.apiKey}`, 'content-type': 'application/json' }, body: JSON.stringify({ model: 'gpt-image-1-mini', prompt, size: '1024x1024', quality: 'low', output_format: 'png', n: 1 }) })
-    } catch { throw new RecipeGraphicError('UNAVAILABLE') }
+    } catch (error) {
+      console.warn('OpenAI recipe graphic transport failed.', { errorName: error instanceof Error ? error.name : 'unknown' })
+      throw new RecipeGraphicError('UNAVAILABLE')
+    }
     if (!response.ok) {
       console.warn('OpenAI recipe graphic request was rejected.', { status: response.status })
       throw new RecipeGraphicError('UNAVAILABLE')
