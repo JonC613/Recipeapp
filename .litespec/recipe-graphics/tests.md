@@ -3,11 +3,11 @@ feature: recipe-graphics
 artifact: tests
 status: implementing
 owner: user
-version: 0.1
+version: 0.2
 created: 2026-09-09
 updated: 2026-09-09
-spec_version: 0.1
-plan_version: 0.1
+spec_version: 0.2
+plan_version: 0.2
 ---
 
 # Test Plan: Recipe Graphics
@@ -25,6 +25,8 @@ Use Worker doubles for the paid provider contract and local D1/R2 integration fo
 | AC-01.3 | T-03 | Worker integration | Planned |
 | AC-02.1 | T-02 | Worker integration | Planned |
 | AC-02.2 | T-04 | Worker unit | Passed |
+| AC-03.1 | T-05 | Component + authenticated production check | Passed |
+| AC-03.2 | T-05 | Component | Passed |
 
 ## Critical user flows
 
@@ -62,6 +64,14 @@ Use Worker doubles for the paid provider contract and local D1/R2 integration fo
 - Action: Generate from a recipe.
 - Expected: Exactly one `gpt-image-1-mini`, low-quality, 1024×1024 call uses bounded recipe content.
 
+### T-05 — Library art thumbnail and placeholder
+
+- Covers: AC-03.1, AC-03.2.
+- Level: component and authenticated production check.
+- Setup: Recipe cards with and without the summary `graphicAvailable` flag.
+- Action: Render each card; load the protected production Library with stored art.
+- Expected: Art-backed cards link to the same-origin image route with a lazy thumbnail; artless cards contain no image request and use only a decorative placeholder.
+
 ## External-input coverage
 
 - Reject missing/oversized/invalid base64 provider output without an R2 or D1 write.
@@ -85,6 +95,7 @@ Use Worker doubles for the paid provider contract and local D1/R2 integration fo
 
 - [ ] T-01–T-03 pass.
 - [x] T-04 passes with no external OpenAI call.
+- [x] T-05 passes in component coverage and the protected production Library shows generated-art thumbnails.
 - [ ] Remote migration, deployment, and M-01 owner smoke complete.
 
 ## Amendment history
@@ -92,3 +103,4 @@ Use Worker doubles for the paid provider contract and local D1/R2 integration fo
 | Version | Date | Change | Reason | Affected IDs |
 |---|---|---|---|---|
 | 0.1 | 2026-09-09 | Initial implementation record | Feature was already authorized and implemented | All |
+| 0.2 | 2026-09-09 | Added thumbnail acceptance traceability and evidence | In-scope visual browsing extension | T-05, AC-03.1–AC-03.2 |

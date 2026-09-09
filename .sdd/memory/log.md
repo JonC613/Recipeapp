@@ -82,6 +82,10 @@
   one low-cost, low-quality OpenAI image generation per saved recipe, private R2 PNG storage, a
   same-origin display route, and a nullable D1 graphic key. Source: `.litespec/recipe-graphics/`.
 
+- **Recipe Graphics Library amendment:** Added the safe summary availability flag and Library-card
+  thumbnails for existing generated art, with a decorative placeholder for recipes without art. No
+  image is generated during browsing. Source: `.litespec/recipe-graphics/` and commit `117203a`.
+
 - **Recipe Chat hardening deployed:** Worker release `35b550b9-67df-4937-a9d6-0563359259e5` is routed
   at 100% traffic. It contains bounded Recipe Chat context, bulk follow-up hydration, safe clarification,
   offline evaluation preparation, and cancellation regression coverage. The owner confirmed the

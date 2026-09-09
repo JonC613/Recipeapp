@@ -3,10 +3,10 @@ feature: recipe-graphics
 artifact: plan
 status: implementing
 owner: user
-version: 0.1
+version: 0.2
 created: 2026-09-09
 updated: 2026-09-09
-spec_version: 0.1
+spec_version: 0.2
 ---
 
 # Implementation Plan: Recipe Graphics
@@ -31,6 +31,7 @@ Add nullable graphic metadata through migration `0012`. An owner-triggered Worke
 | `migrations/0012_recipe_graphics.sql`, recipe repository | Persist private image key and availability projection. | R-03 |
 | Worker image service and route | Generate, validate, store, and safely serve one PNG. | R-02–R-04 |
 | Recipe detail service/page | Show generate state, stored art, and disclosure. | R-01 |
+| Recipe list repository, card, and styles | Project graphic availability and render a private thumbnail or decorative placeholder. | R-05 |
 
 ## Risks and mitigations
 
@@ -70,6 +71,12 @@ Add nullable graphic metadata through migration `0012`. An owner-triggered Worke
   - Work: Apply remote migration, deploy, then perform an owner-authorized one-image smoke.
   - Verify: Remote migration status and owner smoke.
 
+- [x] **P2-T3 — Add Library thumbnails for stored art**
+  - Covers: R-05, AC-03.1–AC-03.2.
+  - Depends on: P1-T1, P1-T2.
+  - Work: Extend the safe recipe-summary projection with availability and render a lazy same-origin thumbnail or decorative placeholder in cards.
+  - Verify: Component test, Worker recipe-list test, and authenticated production Library check.
+
 ## Release and rollback considerations
 
 - **Release:** Apply `0012_recipe_graphics.sql` before deploying the Worker that reads graphic columns.
@@ -80,3 +87,4 @@ Add nullable graphic metadata through migration `0012`. An owner-triggered Worke
 | Version | Date | Change | Reason | Affected IDs |
 |---|---|---|---|---|
 | 0.1 | 2026-09-09 | Initial implementation record | Feature was already authorized and implemented | All |
+| 0.2 | 2026-09-09 | Added Library-thumbnail implementation task | In-scope visual browsing extension | P2-T3, R-05 |

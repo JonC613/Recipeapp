@@ -3,7 +3,7 @@ feature: recipe-graphics
 artifact: spec
 status: implementing
 owner: user
-version: 0.1
+version: 0.2
 created: 2026-09-09
 updated: 2026-09-09
 ---
@@ -47,6 +47,7 @@ The owner can explicitly generate and view one private graphic from a recipe det
 - **R-02:** The Worker builds the prompt from bounded title, description, and ingredient text, requests one low-quality image, and requires no browser provider credential.
 - **R-03:** Generated PNG bytes and their private R2 key persist against the recipe; the browser receives an authenticated Worker image response, never the key or raw provider payload.
 - **R-04:** Missing recipes, provider failures, invalid image output, and repeat-generation attempts return safe, recoverable responses without recording a broken graphic.
+- **R-05:** Library cards show a thumbnail from the protected same-origin graphic route when art exists and a non-content placeholder when it does not.
 
 ### Deferred
 
@@ -81,6 +82,18 @@ The owner can explicitly generate and view one private graphic from a recipe det
 
 **Edge cases:** Malformed provider output is rejected and no R2 key is saved.
 
+### US-03 — Scan generated art in the Library
+
+**Story:** As the owner, I want generated recipe art to appear in Library cards, so that visual recipes are easier to recognize while browsing.
+**Rationale:** Detail-page art is less useful if it is hidden until after opening each recipe.
+
+**Acceptance criteria:**
+
+- **AC-03.1:** A Library card with generated art renders a lazy-loaded thumbnail from the protected same-origin graphic route.
+- **AC-03.2:** A Library card without generated art renders a decorative placeholder and does not request an image.
+
+**Edge cases:** Image availability remains a summary flag only; list responses never expose R2 keys or provider data.
+
 ## Non-functional requirements
 
 - **NFR-01 — Cost:** Generation is manual and limited to one stored image per recipe; the UI shows an approximate $0.005 image cost based on current official pricing.
@@ -112,3 +125,4 @@ The React detail page uses typed same-origin recipe services. The Cloudflare Wor
 | Version | Date | Change | Reason | Affected IDs |
 |---|---|---|---|---|
 | 0.1 | 2026-09-09 | Initial implementation record | Feature was already authorized and implemented | All |
+| 0.2 | 2026-09-09 | Added Library thumbnail and placeholder behavior | In-scope visual browsing extension | R-05, US-03, AC-03.1–AC-03.2 |

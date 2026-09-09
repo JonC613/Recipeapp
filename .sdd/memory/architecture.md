@@ -89,6 +89,9 @@ sdd: {"profile_version":1,"assumptions":[]}
   Worker-owned OpenAI Image API, stores PNG bytes in private R2, and records a nullable recipe key.
   `GET /api/recipes/:id/graphic` proxies the stored PNG through the protected hostname; browser DTOs
   expose only graphic availability and never the provider or R2 key.
+- `GET /api/recipes` projects graphic availability in its safe recipe summaries. Library cards use that
+  flag to lazily load the existing authenticated graphic route or render a decorative placeholder; list
+  results never carry an R2 key, provider payload, or image-generation action.
 - `/meal-plan` reads one selected week through typed browser services. Worker-owned `/api/meal-plans`
   routes assign/remove dinners, generate/update deterministic grocery snapshots, and mutate custom/checklist
   items; no route invokes AI or an external provider.
