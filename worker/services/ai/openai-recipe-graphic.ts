@@ -15,7 +15,7 @@ export class OpenAiRecipeGraphic {
     try {
       response = await this.request('https://api.openai.com/v1/images/generations', { method: 'POST', headers: { authorization: `Bearer ${this.apiKey}`, 'content-type': 'application/json' }, body: JSON.stringify({ model: 'gpt-image-1-mini', prompt, size: '1024x1024', quality: 'low', output_format: 'png', n: 1 }) })
     } catch (error) {
-      console.warn('OpenAI recipe graphic transport failed.', { errorName: error instanceof Error ? error.name : 'unknown' })
+      console.warn('OpenAI recipe graphic transport failed.', { errorName: error instanceof Error ? error.name : 'unknown', message: error instanceof Error ? error.message.slice(0, 160) : undefined })
       throw new RecipeGraphicError('UNAVAILABLE')
     }
     if (!response.ok) {
