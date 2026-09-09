@@ -55,7 +55,7 @@ known-good build. Do not infer the source commit from the deployment timestamp a
 
 On 2026-09-09, the completed Recipe Chat hardening was deployed as Worker release
 `35b550b9-67df-4937-a9d6-0563359259e5`, confirmed at 100% traffic by Cloudflare. It is the current
-release candidate; retain the prior known-good release until the owner completes the authenticated smoke.
+known-good release; the owner completed the authenticated smoke after deployment.
 
 ## Release sequence
 
@@ -74,8 +74,8 @@ release candidate; retain the prior known-good release until the owner completes
 
 If any protected-hostname or smoke check fails, keep Access enabled, select the last known-good Worker
 release in Cloudflare, and retest the blocked and authorized paths. The current known-good release is
-`e686e23d-994d-4043-811d-8f2edec3f5d4` (2026-09-06; owner smoke confirmed 2026-09-08). The current
-release candidate is `35b550b9-67df-4937-a9d6-0563359259e5` (2026-09-09).
+`35b550b9-67df-4937-a9d6-0563359259e5` (2026-09-09; owner smoke confirmed). The prior known-good
+release is `e686e23d-994d-4043-811d-8f2edec3f5d4` (2026-09-06; owner smoke confirmed 2026-09-08).
 
 The owner can locate releases in the Cloudflare Worker deployment history or, from this repository, run
 `npx wrangler deployments list --name recipeapp`. To restore a later failed release, obtain fresh owner

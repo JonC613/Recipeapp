@@ -80,5 +80,6 @@
 
 - **Recipe Chat hardening deployed:** Worker release `35b550b9-67df-4937-a9d6-0563359259e5` is routed
   at 100% traffic. It contains bounded Recipe Chat context, bulk follow-up hydration, safe clarification,
-  offline evaluation preparation, and cancellation regression coverage. The earlier owner-smoked release
-  remains the rollback point until the owner completes the authenticated smoke for this candidate.
+  offline evaluation preparation, and cancellation regression coverage. The owner confirmed the
+  authenticated production smoke; this is the current known-good release. The earlier owner-smoked
+  release remains the rollback point.
