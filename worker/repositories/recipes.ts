@@ -43,7 +43,7 @@ export async function createRecipe(db: D1Database, recipe: NormalizedManualRecip
   return (await getRecipe(db, id))!
 }
 
-export async function listRecipes(db: D1Database, criteria: RecipeSearchCriteria = {}): Promise<Array<Pick<StoredRecipe, 'id' | 'title' | 'favorite' | 'prepMinutes' | 'cookMinutes' | 'category' | 'updatedAt'>>> {
+export async function listRecipes(db: D1Database, criteria: RecipeSearchCriteria = {}): Promise<Array<Pick<StoredRecipe, 'id' | 'title' | 'favorite' | 'graphicAvailable' | 'prepMinutes' | 'cookMinutes' | 'category' | 'updatedAt'>>> {
   const clauses: string[] = []
   const values: Array<string | number> = []
   const match = (value: string) => `%${value}%`
@@ -58,8 +58,8 @@ export async function listRecipes(db: D1Database, criteria: RecipeSearchCriteria
   if (criteria.cuisine) { clauses.push('r.cuisine LIKE ? COLLATE NOCASE'); values.push(match(criteria.cuisine)) }
   if (criteria.category) { clauses.push('r.category LIKE ? COLLATE NOCASE'); values.push(match(criteria.category)) }
   const where = clauses.length ? ` WHERE ${clauses.join(' AND ')}` : ''
-  const { results } = await db.prepare(`SELECT r.id, r.title, r.favorite, r.prep_minutes, r.cook_minutes, r.category, r.updated_at FROM recipes r${where} ORDER BY r.updated_at DESC`).bind(...values).all<{ id: string; title: string; favorite: number; prep_minutes: number | null; cook_minutes: number | null; category: string | null; updated_at: string }>()
-  return results.map((row) => ({ id: row.id, title: row.title, favorite: row.favorite === 1, prepMinutes: row.prep_minutes ?? undefined, cookMinutes: row.cook_minutes ?? undefined, category: row.category ?? undefined, updatedAt: row.updated_at }))
+  const { results } = await db.prepare(`SELECT r.id, r.title, r.favorite, r.graphic_r2_key, r.prep_minutes, r.cook_minutes, r.category, r.updated_at FROM recipes r${where} ORDER BY r.updated_at DESC`).bind(...values).all<{ id: string; title: string; favorite: number; graphic_r2_key: string | null; prep_minutes: number | null; cook_minutes: number | null; category: string | null; updated_at: string }>()
+  return results.map((row) => ({ id: row.id, title: row.title, favorite: row.favorite === 1, graphicAvailable: Boolean(row.graphic_r2_key), prepMinutes: row.prep_minutes ?? undefined, cookMinutes: row.cook_minutes ?? undefined, category: row.category ?? undefined, updatedAt: row.updated_at }))
 }
 
 const chatStopWords = new Set(['a', 'an', 'and', 'are', 'at', 'be', 'best', 'can', 'do', 'for', 'from', 'get', 'give', 'have', 'i', 'in', 'is', 'it', 'list', 'me', 'my', 'of', 'or', 'recipe', 'recipes', 'show', 'that', 'the', 'to', 'use', 'uses', 'using', 'what', 'which', 'with'])

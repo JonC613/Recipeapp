@@ -3,7 +3,7 @@ import type { RecipeSearchCriteria } from '../domain/recipe/search.js'
 
 export type { RecipeSearchCriteria } from '../domain/recipe/search.js'
 
-export interface RecipeSummary { id: string; title: string; favorite: boolean; prepMinutes?: number; cookMinutes?: number; category?: string }
+export interface RecipeSummary { id: string; title: string; favorite: boolean; graphicAvailable: boolean; prepMinutes?: number; cookMinutes?: number; category?: string }
 export interface Recipe extends RecipeSummary, ManualRecipeInput {
   graphicAvailable: boolean
   ingredients: Array<RecipeIngredientInput & { id: string; position: number }>

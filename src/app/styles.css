@@ -44,6 +44,7 @@ h2 { margin: 0; font-size: clamp(1.55rem, 4vw, 2.25rem); }
 .recipe-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; }
 .recipe-card, .recipe-form { display: grid; gap: 1rem; padding: 1.25rem; background: #fffdf8; border: 1px solid #d7d4c9; border-radius: .7rem; }
 .recipe-card { min-height: 13rem; align-content: start; padding: 1.35rem; border-color: #c9d2c8; box-shadow: 0 .65rem 1.4rem rgba(36,66,52,.06); }
+.recipe-card__thumbnail { display: block; overflow: hidden; aspect-ratio: 16 / 9; border-radius: .45rem; background: #e7eee7; }.recipe-card__thumbnail img { display: block; width: 100%; height: 100%; object-fit: cover; }.recipe-card__thumbnail--placeholder { display: grid; place-items: center; color: #829084; font-size: 2rem; background: linear-gradient(135deg, #eff5ef, #f4ede2); }
 .recipe-card__heading { display: grid; gap: .35rem; }
 .recipe-card h2 { font-size: 1.55rem; }.recipe-card h2 a { text-decoration: none; }.recipe-card h2 a:hover { text-decoration: underline; text-underline-offset: .16em; }
 .card-kicker--favorite { color: #a64d29; }
