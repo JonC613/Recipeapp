@@ -3,10 +3,10 @@ feature: recipe-graphics
 artifact: plan
 status: implementing
 owner: user
-version: 0.2
+version: 0.4
 created: 2026-09-09
 updated: 2026-09-09
-spec_version: 0.2
+spec_version: 0.4
 ---
 
 # Implementation Plan: Recipe Graphics
@@ -32,6 +32,7 @@ Add nullable graphic metadata through migration `0012`. An owner-triggered Worke
 | Worker image service and route | Generate, validate, store, and safely serve one PNG. | R-02–R-04 |
 | Recipe detail service/page | Show generate state, stored art, and disclosure. | R-01 |
 | Recipe list repository, card, and styles | Project graphic availability and render a private thumbnail or decorative placeholder. | R-05 |
+| Recipe Library page and typed service | Confirm and run a browser-session sequential backfill of initially missing recipes. | R-06 |
 
 ## Risks and mitigations
 
@@ -39,6 +40,7 @@ Add nullable graphic metadata through migration `0012`. An owner-triggered Worke
 |---|---|---|---|
 | Provider unavailable or malformed output | No graphic | Safe error; write R2/D1 only after valid bytes | Provider double |
 | Unexpected spend | Cost | Manual action, single saved result, visible estimate | Route/UI review |
+| Batch interruption or provider failure | Incomplete coverage | Sequential browser-session requests, retained successes, per-item continuation and progress | Service/component test and production run |
 | Private key exposure | Data leak | Same-origin Worker image route; browser gets no R2 key | Contract test |
 
 ## Implementation phases
@@ -77,6 +79,12 @@ Add nullable graphic metadata through migration `0012`. An owner-triggered Worke
   - Work: Extend the safe recipe-summary projection with availability and render a lazy same-origin thumbnail or decorative placeholder in cards.
   - Verify: Component test, Worker recipe-list test, and authenticated production Library check.
 
+- [x] **P2-T4 — Add confirmed missing-art backfill**
+  - Covers: R-06, AC-04.1, AC-04.2, AC-04.3.
+  - Depends on: P2-T3.
+  - Work: Add a Library-only confirmation, immutable initial missing set, sequential existing graphic calls, progress, continuation after failures, and final refresh.
+  - Verify: Typecheck, service unit test, production owner-confirmed batch run.
+
 ## Release and rollback considerations
 
 - **Release:** Apply `0012_recipe_graphics.sql` before deploying the Worker that reads graphic columns.
@@ -88,3 +96,5 @@ Add nullable graphic metadata through migration `0012`. An owner-triggered Worke
 |---|---|---|---|---|
 | 0.1 | 2026-09-09 | Initial implementation record | Feature was already authorized and implemented | All |
 | 0.2 | 2026-09-09 | Added Library-thumbnail implementation task | In-scope visual browsing extension | P2-T3, R-05 |
+| 0.3 | 2026-09-09 | Added approved controlled batch-backfill task | Owner approved bounded paid generation for missing recipes | P2-T4, R-06 |
+| 0.4 | 2026-09-09 | Recorded completed production backfill | Owner-approved production run and retry left all 41 saved recipes with art | P2-T4 |

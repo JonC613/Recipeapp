@@ -39,6 +39,17 @@ export function createRecipe(recipe: ManualRecipeInput): Promise<Recipe> {
 export function updateRecipe(id: string, recipe: ManualRecipeInput): Promise<Recipe> { return request(`/api/recipes/${encodeURIComponent(id)}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(recipe) }) }
 export function setFavorite(id: string, favorite: boolean): Promise<Recipe> { return request(`/api/recipes/${encodeURIComponent(id)}/favorite`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ favorite }) }) }
 export function generateRecipeGraphic(id: string): Promise<{ graphicUrl: string }> { return request(`/api/recipes/${encodeURIComponent(id)}/graphic`, { method: 'POST' }) }
+export async function generateMissingRecipeGraphics(recipes: RecipeSummary[], onProgress: (progress: { completed: number; total: number; generated: number; failed: number }) => void): Promise<{ generated: number; failed: number }> {
+  const missing = recipes.filter((recipe) => !recipe.graphicAvailable)
+  let generated = 0
+  let failed = 0
+  onProgress({ completed: 0, total: missing.length, generated, failed })
+  for (const recipe of missing) {
+    try { await generateRecipeGraphic(recipe.id); generated += 1 } catch { failed += 1 }
+    onProgress({ completed: generated + failed, total: missing.length, generated, failed })
+  }
+  return { generated, failed }
+}
 export async function deleteRecipe(id: string): Promise<void> {
   const response = await fetch(`/api/recipes/${encodeURIComponent(id)}`, { method: 'DELETE' })
   if (!response.ok) throw new Error('The recipe could not be deleted.')

@@ -3,7 +3,7 @@ feature: recipe-graphics
 artifact: spec
 status: implementing
 owner: user
-version: 0.2
+version: 0.4
 created: 2026-09-09
 updated: 2026-09-09
 ---
@@ -26,12 +26,12 @@ The owner can explicitly generate and view one private graphic from a recipe det
 
 ### Goals
 
-- Generate one recognizable, outrageous, text-free square PNG for a saved recipe on explicit owner action.
+- Generate one recognizable, outrageous, text-free square PNG for a saved recipe on explicit owner action, including an owner-confirmed one-time backfill for recipes missing art.
 - Store and serve the image privately through the existing Worker/R2 boundary.
 
 ### Non-goals
 
-- Automatic generation, bulk generation, editing, user uploads, public image URLs, or image-to-recipe extraction changes.
+- Unprompted generation, recurring generation, editing, user uploads, public image URLs, or image-to-recipe extraction changes.
 - Claiming that generated art is an accurate photograph or ingredient-level guarantee.
 
 ### Constraints
@@ -48,10 +48,11 @@ The owner can explicitly generate and view one private graphic from a recipe det
 - **R-03:** Generated PNG bytes and their private R2 key persist against the recipe; the browser receives an authenticated Worker image response, never the key or raw provider payload.
 - **R-04:** Missing recipes, provider failures, invalid image output, and repeat-generation attempts return safe, recoverable responses without recording a broken graphic.
 - **R-05:** Library cards show a thumbnail from the protected same-origin graphic route when art exists and a non-content placeholder when it does not.
+- **R-06:** From the unfiltered Library, the owner can explicitly confirm a sequential backfill of only recipes missing art. Progress reports generated and failed counts; one recipe failure does not stop remaining recipes.
 
 ### Deferred
 
-- **D-01:** Regeneration, art styles, bulk backfill, deletion, and billing dashboards.
+- **D-01:** Regeneration, art styles, deletion, and scheduling/retrying failed batch items.
 
 ## User stories
 
@@ -94,9 +95,22 @@ The owner can explicitly generate and view one private graphic from a recipe det
 
 **Edge cases:** Image availability remains a summary flag only; list responses never expose R2 keys or provider data.
 
+### US-04 — Complete missing Library art
+
+**Story:** As the owner, I want to explicitly backfill every recipe without art, so that the Library becomes consistently visual with a known maximum cost.
+**Rationale:** Generating one at a time is tedious after the owner has chosen the content and approved the bounded spend.
+
+**Acceptance criteria:**
+
+- **AC-04.1:** The unfiltered Library displays the missing count, estimated maximum cost, and a confirmation before the batch starts.
+- **AC-04.2:** After confirmation, requests run sequentially for the initial missing set only; existing art is not regenerated and a failure is reported without preventing later requests.
+- **AC-04.3:** At completion, the Library refreshes and shows newly generated thumbnails; failed recipes remain eligible for a later explicit attempt.
+
+**Edge cases:** Closing or reloading the page stops unsent requests safely; already completed images remain stored and are skipped when the page is reopened.
+
 ## Non-functional requirements
 
-- **NFR-01 — Cost:** Generation is manual and limited to one stored image per recipe; the UI shows an approximate $0.005 image cost based on current official pricing.
+- **NFR-01 — Cost:** Generation is owner-confirmed and limited to one stored image per recipe; the UI shows an approximate $0.005 image cost and batch maximum before requests begin.
 - **NFR-02 — Privacy:** R2 objects stay private and are served only through the protected Worker route.
 - **NFR-03 — Compatibility:** Existing recipe CRUD, imports, chat, cooking mode, and meal planning remain unchanged.
 
@@ -126,3 +140,5 @@ The React detail page uses typed same-origin recipe services. The Cloudflare Wor
 |---|---|---|---|---|
 | 0.1 | 2026-09-09 | Initial implementation record | Feature was already authorized and implemented | All |
 | 0.2 | 2026-09-09 | Added Library thumbnail and placeholder behavior | In-scope visual browsing extension | R-05, US-03, AC-03.1–AC-03.2 |
+| 0.3 | 2026-09-09 | Added owner-confirmed sequential backfill | Owner approved 36 missing images with an approximate $0.18 maximum | R-06, US-04, AC-04.1–AC-04.3 |
+| 0.4 | 2026-09-09 | Recorded completed production backfill | Owner-approved production run and retry left all 41 saved recipes with art | R-06, US-04 |

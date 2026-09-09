@@ -92,6 +92,10 @@ sdd: {"profile_version":1,"assumptions":[]}
 - `GET /api/recipes` projects graphic availability in its safe recipe summaries. Library cards use that
   flag to lazily load the existing authenticated graphic route or render a decorative placeholder; list
   results never carry an R2 key, provider payload, or image-generation action.
+- The unfiltered Library can run an owner-confirmed, browser-session sequential batch over an immutable
+  initial list of artless recipe summaries. It uses the existing per-recipe route, reports per-run
+  successes/failures, and refreshes the summaries after the attempt; closing the page merely stops unsent
+  requests and never removes saved art.
 - `/meal-plan` reads one selected week through typed browser services. Worker-owned `/api/meal-plans`
   routes assign/remove dinners, generate/update deterministic grocery snapshots, and mutate custom/checklist
   items; no route invokes AI or an external provider.
@@ -126,5 +130,5 @@ sdd: {"profile_version":1,"assumptions":[]}
   D1 write or R2 read, treats questions and recipe fields as untrusted data, and never returns credentials,
   raw provider output, private import/source data, or provider-controlled links. It has no vector search,
   web retrieval, persistent memory, or action capability.
-- Recipe Graphics are manual, recipe-scoped, and generated at most once per recipe in the current release;
-  failures do not create a stored graphic, and private R2 object keys remain Worker-only.
+- Recipe Graphics are owner-confirmed, recipe-scoped, and generated at most once per recipe in the current
+  release; failures do not create a stored graphic, and private R2 object keys remain Worker-only.

@@ -86,6 +86,10 @@
   thumbnails for existing generated art, with a decorative placeholder for recipes without art. No
   image is generated during browsing. Source: `.litespec/recipe-graphics/` and commit `117203a`.
 
+- **Recipe Graphics backfill amendment:** Added an owner-confirmed sequential Library backfill that skips
+  existing art and continues after individual failures. The owner-approved production run and retry ended
+  with 41 stored graphics and zero missing recipe graphics. Source: `.litespec/recipe-graphics/`.
+
 - **Recipe Chat hardening deployed:** Worker release `35b550b9-67df-4937-a9d6-0563359259e5` is routed
   at 100% traffic. It contains bounded Recipe Chat context, bulk follow-up hydration, safe clarification,
   offline evaluation preparation, and cancellation regression coverage. The owner confirmed the

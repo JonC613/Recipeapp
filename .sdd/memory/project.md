@@ -64,9 +64,10 @@ service boundaries.
 - Cooks can explicitly generate or update a persistent grocery checklist from planned ingredients. The
   deterministic list groups exact normalized ingredient lines, retains source wording and contributors,
   supports basic shopping sections, check states, and personal items, and makes no AI/provider call.
-- The owner can explicitly generate one private, playful AI menu-art PNG for a saved recipe. The Worker
-  uses a low-cost image model, stores the image privately in R2, and exposes it only through an
-  authenticated same-origin recipe route; automatic or bulk generation is not implemented.
+- The owner can explicitly generate one private, playful AI menu-art PNG for a saved recipe, or confirm a
+  sequential Library backfill for the current missing set with an estimated maximum shown before requests
+  begin. The Worker uses a low-cost image model, stores the image privately in R2, and exposes it only
+  through an authenticated same-origin recipe route; recurring generation is not implemented.
 - Foundation UI, Worker health endpoint, and responsive recovery experiences remain implemented and
   locally validated. D1 and private R2 bindings are exercised through local simulations and tests.
 

@@ -3,11 +3,11 @@ feature: recipe-graphics
 artifact: tests
 status: implementing
 owner: user
-version: 0.2
+version: 0.4
 created: 2026-09-09
 updated: 2026-09-09
-spec_version: 0.2
-plan_version: 0.2
+spec_version: 0.4
+plan_version: 0.4
 ---
 
 # Test Plan: Recipe Graphics
@@ -27,6 +27,9 @@ Use Worker doubles for the paid provider contract and local D1/R2 integration fo
 | AC-02.2 | T-04 | Worker unit | Passed |
 | AC-03.1 | T-05 | Component + authenticated production check | Passed |
 | AC-03.2 | T-05 | Component | Passed |
+| AC-04.1 | T-06, M-02 | Component + authenticated production batch | Passed in production |
+| AC-04.2 | T-07, M-02 | Service unit + authenticated production batch | Passed |
+| AC-04.3 | T-06, M-02 | Component + authenticated production batch | Passed in production |
 
 ## Critical user flows
 
@@ -72,6 +75,22 @@ Use Worker doubles for the paid provider contract and local D1/R2 integration fo
 - Action: Render each card; load the protected production Library with stored art.
 - Expected: Art-backed cards link to the same-origin image route with a lazy thumbnail; artless cards contain no image request and use only a decorative placeholder.
 
+### T-06 — Confirmed Library backfill affordance
+
+- Covers: AC-04.1, AC-04.3.
+- Level: component.
+- Setup: Unfiltered Library with recipes without art.
+- Action: Render and start an owner-confirmed batch.
+- Expected: Missing count and maximum estimate are visible; status reflects progress and the refreshed list has generated availability.
+
+### T-07 — Sequential missing-art service
+
+- Covers: AC-04.2.
+- Level: unit.
+- Setup: A mixed summary list and mocked generation requests, including one rejected request.
+- Action: Run the batch helper.
+- Expected: Only initial missing recipe IDs are requested in list order, no request overlaps, failure does not stop later items, and progress totals are accurate.
+
 ## External-input coverage
 
 - Reject missing/oversized/invalid base64 provider output without an R2 or D1 write.
@@ -86,6 +105,13 @@ Use Worker doubles for the paid provider contract and local D1/R2 integration fo
 - Method: Generate one graphic for a non-sensitive saved recipe after deployment.
 - Expected evidence: Cost disclosure, private rendered PNG, no unexpected second generation, and a usable playful result.
 
+### M-02 — Owner-approved bulk production backfill
+
+- Covers: AC-04.1, AC-04.2, AC-04.3, NFR-01.
+- Automation limitation: This intentionally sends paid provider requests and requires authenticated browser access.
+- Method: Confirm the displayed maximum cost, keep the Library page open through the sequential run, then verify generated/failure counts and refreshed thumbnails.
+- Expected evidence: Production count before/after, visible progress, no duplicate requests, and safe report of any failed recipes.
+
 ## Test data and setup
 
 - Use a fixture recipe with title, description, and ingredients; provider doubles return harmless base64 bytes.
@@ -96,6 +122,8 @@ Use Worker doubles for the paid provider contract and local D1/R2 integration fo
 - [ ] T-01–T-03 pass.
 - [x] T-04 passes with no external OpenAI call.
 - [x] T-05 passes in component coverage and the protected production Library shows generated-art thumbnails.
+- [x] T-07 passes with sequential mixed-result coverage.
+- [x] M-02 completed: production D1 count was 41 stored graphics and 0 missing after owner-approved generation and retry.
 - [ ] Remote migration, deployment, and M-01 owner smoke complete.
 
 ## Amendment history
@@ -104,3 +132,5 @@ Use Worker doubles for the paid provider contract and local D1/R2 integration fo
 |---|---|---|---|---|
 | 0.1 | 2026-09-09 | Initial implementation record | Feature was already authorized and implemented | All |
 | 0.2 | 2026-09-09 | Added thumbnail acceptance traceability and evidence | In-scope visual browsing extension | T-05, AC-03.1–AC-03.2 |
+| 0.3 | 2026-09-09 | Added controlled batch-backfill coverage | Owner approved bounded paid generation for missing recipes | T-06–T-07, AC-04.1–AC-04.3 |
+| 0.4 | 2026-09-09 | Recorded production completion evidence | Owner-approved generation and retry completed all remaining images | M-02, AC-04.1–AC-04.3 |
