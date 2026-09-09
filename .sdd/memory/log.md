@@ -75,3 +75,10 @@
   applied and active Worker release `e686e23d-994d-4043-811d-8f2edec3f5d4` at 100% traffic. An
   unauthenticated health request was redirected by Cloudflare Access. The owner confirmed the authorized
   production smoke test on 2026-09-08; this is the current known-good release.
+
+## 2026-09-09
+
+- **Recipe Chat hardening deployed:** Worker release `35b550b9-67df-4937-a9d6-0563359259e5` is routed
+  at 100% traffic. It contains bounded Recipe Chat context, bulk follow-up hydration, safe clarification,
+  offline evaluation preparation, and cancellation regression coverage. The earlier owner-smoked release
+  remains the rollback point until the owner completes the authenticated smoke for this candidate.
