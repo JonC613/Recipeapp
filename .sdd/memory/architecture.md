@@ -85,6 +85,10 @@ sdd: {"profile_version":1,"assumptions":[]}
   answer citations against candidate IDs and returns only answer text plus Worker-derived recipe links.
 - `/recipes/:recipeId/cook` reuses the typed recipe-read service and keeps selected instruction position
   only in browser memory; it does not mutate the recipe or call a new Worker endpoint.
+- `POST /api/recipes/:id/graphic` explicitly generates one low-quality square recipe graphic through the
+  Worker-owned OpenAI Image API, stores PNG bytes in private R2, and records a nullable recipe key.
+  `GET /api/recipes/:id/graphic` proxies the stored PNG through the protected hostname; browser DTOs
+  expose only graphic availability and never the provider or R2 key.
 - `/meal-plan` reads one selected week through typed browser services. Worker-owned `/api/meal-plans`
   routes assign/remove dinners, generate/update deterministic grocery snapshots, and mutate custom/checklist
   items; no route invokes AI or an external provider.
@@ -119,3 +123,5 @@ sdd: {"profile_version":1,"assumptions":[]}
   D1 write or R2 read, treats questions and recipe fields as untrusted data, and never returns credentials,
   raw provider output, private import/source data, or provider-controlled links. It has no vector search,
   web retrieval, persistent memory, or action capability.
+- Recipe Graphics are manual, recipe-scoped, and generated at most once per recipe in the current release;
+  failures do not create a stored graphic, and private R2 object keys remain Worker-only.

@@ -78,6 +78,10 @@
 
 ## 2026-09-09
 
+- **Recipe Graphics implementation:** Added the LiteSpec-backed, on-demand private recipe-art capability:
+  one low-cost, low-quality OpenAI image generation per saved recipe, private R2 PNG storage, a
+  same-origin display route, and a nullable D1 graphic key. Source: `.litespec/recipe-graphics/`.
+
 - **Recipe Chat hardening deployed:** Worker release `35b550b9-67df-4937-a9d6-0563359259e5` is routed
   at 100% traffic. It contains bounded Recipe Chat context, bulk follow-up hydration, safe clarification,
   offline evaluation preparation, and cancellation regression coverage. The owner confirmed the
