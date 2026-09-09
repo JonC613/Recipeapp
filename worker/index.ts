@@ -6,6 +6,7 @@ import { handleMealDb } from './routes/mealdb.js'
 import { handleUsage } from './routes/usage.js'
 import { handleMealPlans } from './routes/meal-plans.js'
 import { handleRecipeChat } from './routes/recipe-chat.js'
+import { handleRecipeGraphic } from './routes/recipe-graphics.js'
 
 export default {
   fetch(request, env) {
@@ -34,6 +35,8 @@ export default {
     if (recipeMatch) return handleRecipes(request, env, recipeMatch[1])
     const favoriteMatch = pathname.match(/^\/api\/recipes\/([^/]+)\/favorite$/)
     if (favoriteMatch && request.method === 'PATCH') return handleFavorite(request, env, favoriteMatch[1])
+    const graphicMatch = pathname.match(/^\/api\/recipes\/([^/]+)\/graphic$/)
+    if (graphicMatch) return handleRecipeGraphic(request, env, graphicMatch[1], 'graphic')
     if (pathname === '/api' || pathname.startsWith('/api/')) {
       return jsonError('NOT_FOUND', 'The requested API route was not found.', false, 404)
     }

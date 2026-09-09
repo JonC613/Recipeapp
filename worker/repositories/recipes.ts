@@ -5,6 +5,7 @@ import type { RecipeChatContext } from '../services/ai/recipe-chat.js'
 export interface StoredRecipe extends NormalizedManualRecipe {
   id: string
   favorite: boolean
+  graphicAvailable: boolean
   source: RecipeSource
   createdAt: string
   updatedAt: string
@@ -14,7 +15,7 @@ type RecipeRow = {
   id: string; title: string; description: string | null; servings: number | null
   prep_minutes: number | null; cook_minutes: number | null; total_minutes: number | null
   cuisine: string | null; category: string | null; notes: string | null; favorite: number
-  source_type: 'manual' | 'url' | 'text' | 'pdf' | 'image'; source_url: string | null; source_name: string | null; source_r2_key: string | null; created_at: string; updated_at: string
+  source_type: 'manual' | 'url' | 'text' | 'pdf' | 'image'; source_url: string | null; source_name: string | null; source_r2_key: string | null; graphic_r2_key: string | null; graphic_generated_at: string | null; created_at: string; updated_at: string
 }
 
 function mapRecipe(row: RecipeRow): Omit<StoredRecipe, 'ingredients' | 'instructions' | 'tags'> {
@@ -23,7 +24,7 @@ function mapRecipe(row: RecipeRow): Omit<StoredRecipe, 'ingredients' | 'instruct
     prepMinutes: row.prep_minutes ?? undefined, cookMinutes: row.cook_minutes ?? undefined,
     totalMinutes: row.total_minutes ?? undefined, cuisine: row.cuisine ?? undefined,
     category: row.category ?? undefined, notes: row.notes ?? undefined, favorite: row.favorite === 1,
-    source: row.source_type === 'url' && row.source_url ? { type: 'url', originalUrl: row.source_url } : row.source_type === 'text' ? { type: 'text' } : row.source_type === 'pdf' && row.source_r2_key ? { type: 'pdf', r2ObjectKey: row.source_r2_key, sourceName: row.source_name ?? undefined } : row.source_type === 'image' && row.source_r2_key ? { type: 'image', r2ObjectKey: row.source_r2_key, sourceName: row.source_name ?? undefined } : { type: 'manual' }, createdAt: row.created_at, updatedAt: row.updated_at,
+    source: row.source_type === 'url' && row.source_url ? { type: 'url', originalUrl: row.source_url } : row.source_type === 'text' ? { type: 'text' } : row.source_type === 'pdf' && row.source_r2_key ? { type: 'pdf', r2ObjectKey: row.source_r2_key, sourceName: row.source_name ?? undefined } : row.source_type === 'image' && row.source_r2_key ? { type: 'image', r2ObjectKey: row.source_r2_key, sourceName: row.source_name ?? undefined } : { type: 'manual' }, graphicAvailable: Boolean(row.graphic_r2_key), createdAt: row.created_at, updatedAt: row.updated_at,
   }
 }
 
@@ -147,6 +148,15 @@ export async function getRecipe(db: D1Database, id: string): Promise<StoredRecip
     instructions: instructions.results.map((item) => ({ id: String(item.id), stepNumber: Number(item.step_number), text: String(item.text) })),
     tags: tags.results.map((item) => item.tag),
   }
+}
+
+export async function getRecipeGraphicKey(db: D1Database, id: string): Promise<string | undefined> {
+  const row = await db.prepare('SELECT graphic_r2_key FROM recipes WHERE id = ?').bind(id).first<{ graphic_r2_key: string | null }>()
+  return row?.graphic_r2_key ?? undefined
+}
+
+export async function setRecipeGraphicKey(db: D1Database, id: string, key: string): Promise<void> {
+  await db.prepare('UPDATE recipes SET graphic_r2_key = ?, graphic_generated_at = ?, updated_at = ? WHERE id = ?').bind(key, new Date().toISOString(), new Date().toISOString(), id).run()
 }
 
 function childStatements(db: D1Database, id: string, recipe: NormalizedManualRecipe): D1PreparedStatement[] {

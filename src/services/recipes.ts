@@ -5,6 +5,7 @@ export type { RecipeSearchCriteria } from '../domain/recipe/search.js'
 
 export interface RecipeSummary { id: string; title: string; favorite: boolean; prepMinutes?: number; cookMinutes?: number; category?: string }
 export interface Recipe extends RecipeSummary, ManualRecipeInput {
+  graphicAvailable: boolean
   ingredients: Array<RecipeIngredientInput & { id: string; position: number }>
   instructions: Array<RecipeInstructionInput & { id: string; stepNumber: number }>
   tags: string[]
@@ -37,6 +38,7 @@ export function createRecipe(recipe: ManualRecipeInput): Promise<Recipe> {
 }
 export function updateRecipe(id: string, recipe: ManualRecipeInput): Promise<Recipe> { return request(`/api/recipes/${encodeURIComponent(id)}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(recipe) }) }
 export function setFavorite(id: string, favorite: boolean): Promise<Recipe> { return request(`/api/recipes/${encodeURIComponent(id)}/favorite`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ favorite }) }) }
+export function generateRecipeGraphic(id: string): Promise<{ graphicUrl: string }> { return request(`/api/recipes/${encodeURIComponent(id)}/graphic`, { method: 'POST' }) }
 export async function deleteRecipe(id: string): Promise<void> {
   const response = await fetch(`/api/recipes/${encodeURIComponent(id)}`, { method: 'DELETE' })
   if (!response.ok) throw new Error('The recipe could not be deleted.')
