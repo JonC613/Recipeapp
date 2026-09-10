@@ -15,6 +15,31 @@ test('creates a manual recipe and reads it from the library', async ({ page }) =
   await expect(page.getByText('Toss and serve.')).toBeVisible()
 })
 
+test('keeps generated recipe art inside a narrow recipe page', async ({ page }) => {
+  await page.goto('/recipes/new')
+  await page.getByRole('textbox', { name: 'Recipe title' }).fill('Mobile Art Test')
+  await page.getByRole('textbox', { name: /ingredients/i }).fill('1 cup tomatoes')
+  await page.getByRole('textbox', { name: /instructions/i }).fill('Serve warm.')
+  await page.getByRole('button', { name: 'Save recipe' }).click()
+  await expect(page.getByRole('heading', { name: 'Mobile Art Test' })).toBeVisible()
+
+  const recipeId = new URL(page.url()).pathname.split('/').pop()
+  await page.route(`**/api/recipes/${recipeId}`, async (route) => {
+    const response = await route.fetch()
+    const recipe = await response.json() as Record<string, unknown>
+    await route.fulfill({ response, json: { ...recipe, graphicAvailable: true } })
+  })
+  await page.route(`**/api/recipes/${recipeId}/graphic`, async (route) => {
+    await route.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200"><rect width="1200" height="1200" fill="#d4693a"/></svg>' })
+  })
+  await page.goto(`/recipes/${recipeId}`)
+
+  const image = page.getByRole('img', { name: 'AI-generated playful illustration of Mobile Art Test' })
+  await expect(image).toBeVisible()
+  await expect(image.evaluate((element) => element.getBoundingClientRect().width <= window.innerWidth)).resolves.toBe(true)
+  await expect(page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).resolves.toBe(true)
+})
+
 test('edits, favorites, and deliberately deletes a recipe', async ({ page }, testInfo) => {
   const createdTitle = `Maintenance Soup ${testInfo.project.name} ${Date.now()}`
   const updatedTitle = `Edited Soup ${testInfo.project.name} ${Date.now()}`
