@@ -4,7 +4,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router'
 
 const services = vi.hoisted(() => ({ getMealPlanWeek: vi.fn(), assignDinner: vi.fn(), removeDinner: vi.fn(), generateGroceryList: vi.fn(), addCustomGroceryItem: vi.fn(), setGroceryItemChecked: vi.fn(), removeGroceryItem: vi.fn(), listRecipes: vi.fn() }))
 vi.mock('../../src/services/meal-plans', () => services)
-vi.mock('../../src/services/recipes', () => ({ listRecipes: services.listRecipes }))
+vi.mock('../../src/services/recipes', () => ({ listRecipes: services.listRecipes, cookingSignal: () => undefined }))
 import { MealPlanPage } from '../../src/pages/MealPlanPage'
 
 const week = { weekStart: '2026-09-06', planRevision: 0, groceryListStale: false, dinners: [], groceryItems: [] }

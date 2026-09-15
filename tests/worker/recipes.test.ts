@@ -110,4 +110,20 @@ describe('recipe API', () => {
     expect(invalidFavorite.status).toBe(400)
     await expect(invalidFavorite.json()).resolves.toMatchObject({ error: { code: 'VALIDATION_ERROR', retryable: false } })
   })
+
+  it('records and deletes bounded cook logs without exposing them in library summaries', async () => {
+    const create = await worker.fetch(new Request('https://recipeapp.test/api/recipes', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ title: 'Cooked soup' }) }), env)
+    const recipe = await create.json() as { id: string }
+    const logged = await worker.fetch(new Request(`https://recipeapp.test/api/recipes/${recipe.id}/cook-logs`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ rating: 5, note: 'Use more dill.' }) }), env)
+    expect(logged.status).toBe(201)
+    const detail = await logged.json() as { cookCount: number; averageRating?: number; cookLogs: Array<{ id: string; note?: string; cookedAt: string }> }
+    expect(detail).toMatchObject({ cookCount: 1, averageRating: 5, cookLogs: [{ note: 'Use more dill.' }] })
+    expect(detail.cookLogs[0].cookedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/)
+    const list = await worker.fetch(new Request('https://recipeapp.test/api/recipes'), env)
+    await expect(list.json()).resolves.toMatchObject([{ id: recipe.id, cookCount: 1, averageRating: 5 }])
+    const invalid = await worker.fetch(new Request(`https://recipeapp.test/api/recipes/${recipe.id}/cook-logs`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ rating: 6 }) }), env)
+    expect(invalid.status).toBe(400)
+    const removed = await worker.fetch(new Request(`https://recipeapp.test/api/recipes/${recipe.id}/cook-logs/${detail.cookLogs[0].id}`, { method: 'DELETE' }), env)
+    await expect(removed.json()).resolves.toMatchObject({ cookCount: 0, cookLogs: [] })
+  })
 })

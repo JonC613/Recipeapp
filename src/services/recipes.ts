@@ -3,7 +3,8 @@ import type { RecipeSearchCriteria } from '../domain/recipe/search.js'
 
 export type { RecipeSearchCriteria } from '../domain/recipe/search.js'
 
-export interface RecipeSummary { id: string; title: string; favorite: boolean; graphicAvailable: boolean; prepMinutes?: number; cookMinutes?: number; category?: string }
+export interface CookLog { id: string; rating?: number; note?: string; cookedAt: string }
+export interface RecipeSummary { id: string; title: string; favorite: boolean; graphicAvailable: boolean; prepMinutes?: number; cookMinutes?: number; category?: string; cookCount?: number; lastCookedAt?: string; averageRating?: number }
 export interface Recipe extends RecipeSummary, ManualRecipeInput {
   graphicAvailable: boolean
   ingredients: Array<RecipeIngredientInput & { id: string; position: number }>
@@ -12,6 +13,15 @@ export interface Recipe extends RecipeSummary, ManualRecipeInput {
   source: RecipeSource
   createdAt: string
   updatedAt: string
+  cookLogs: CookLog[]
+}
+
+export function cookingSignal(recipe: Pick<RecipeSummary, 'cookCount' | 'lastCookedAt' | 'averageRating'>): string | undefined {
+  if (!recipe.cookCount) return undefined
+  const parts = [`Cooked ${recipe.cookCount} ${recipe.cookCount === 1 ? 'time' : 'times'}`]
+  if (recipe.lastCookedAt) parts.push(`Last ${new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(recipe.lastCookedAt))}`)
+  if (recipe.averageRating !== undefined) parts.push(`★ ${recipe.averageRating.toFixed(1)}`)
+  return parts.join(' · ')
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -39,6 +49,8 @@ export function createRecipe(recipe: ManualRecipeInput): Promise<Recipe> {
 export function updateRecipe(id: string, recipe: ManualRecipeInput): Promise<Recipe> { return request(`/api/recipes/${encodeURIComponent(id)}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(recipe) }) }
 export function setFavorite(id: string, favorite: boolean): Promise<Recipe> { return request(`/api/recipes/${encodeURIComponent(id)}/favorite`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ favorite }) }) }
 export function generateRecipeGraphic(id: string): Promise<{ graphicUrl: string }> { return request(`/api/recipes/${encodeURIComponent(id)}/graphic`, { method: 'POST' }) }
+export function createCookLog(id: string, input: { rating?: number; note?: string }): Promise<Recipe> { return request(`/api/recipes/${encodeURIComponent(id)}/cook-logs`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input) }) }
+export function deleteCookLog(recipeId: string, logId: string): Promise<Recipe> { return request(`/api/recipes/${encodeURIComponent(recipeId)}/cook-logs/${encodeURIComponent(logId)}`, { method: 'DELETE' }) }
 export async function generateMissingRecipeGraphics(recipes: RecipeSummary[], onProgress: (progress: { completed: number; total: number; generated: number; failed: number }) => void): Promise<{ generated: number; failed: number }> {
   const missing = recipes.filter((recipe) => !recipe.graphicAvailable)
   let generated = 0

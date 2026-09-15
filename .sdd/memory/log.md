@@ -95,3 +95,11 @@
   offline evaluation preparation, and cancellation regression coverage. The owner confirmed the
   authenticated production smoke; this is the current known-good release. The earlier owner-smoked
   release remains the rollback point.
+
+## 2026-09-11
+
+- **Cooking History and Feedback implementation:** Added private D1 cook logs with server timestamps,
+  optional bounded ratings/notes, per-entry correction, detail history, and aggregate cook signals for
+  Library and Meal Plan. The Worker exposes recipe-scoped create/delete routes; list responses omit
+  individual notes. Source: `.litespec/cooking-history-feedback/` and
+  `migrations/0013_recipe_cook_logs.sql`.

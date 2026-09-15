@@ -92,6 +92,10 @@ sdd: {"profile_version":1,"assumptions":[]}
 - `GET /api/recipes` projects graphic availability in its safe recipe summaries. Library cards use that
   flag to lazily load the existing authenticated graphic route or render a decorative placeholder; list
   results never carry an R2 key, provider payload, or image-generation action.
+- `POST /api/recipes/:id/cook-logs` creates one server-timestamped private cook log after bounded rating
+  and note validation; `DELETE /api/recipes/:id/cook-logs/:logId` removes an exact recipe-scoped log.
+  Recipe detail reads include newest-first entries, while `GET /api/recipes` returns only cook count,
+  latest timestamp, and nullable average rating; notes never appear in Library or meal-plan data.
 - The unfiltered Library can run an owner-confirmed, browser-session sequential batch over an immutable
   initial list of artless recipe summaries. It uses the existing per-recipe route, reports per-run
   successes/failures, and refreshes the summaries after the attempt; closing the page merely stops unsent

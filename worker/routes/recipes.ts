@@ -1,7 +1,7 @@
 import { recipeNotFound, validationError } from '../http.js'
 import { normalizeManualRecipe } from '../../src/domain/recipe/validation.js'
 import type { RecipeSearchCriteria } from '../../src/domain/recipe/search.js'
-import { createRecipe, deleteRecipe, getRecipe, listRecipes, setFavorite, updateRecipe } from '../repositories/recipes.js'
+import { createCookLog, createRecipe, deleteCookLog, deleteRecipe, getRecipe, listRecipes, setFavorite, updateRecipe } from '../repositories/recipes.js'
 
 export async function handleRecipes(request: Request, env: Env, recipeId?: string): Promise<Response> {
   try {
@@ -52,4 +52,29 @@ export async function handleFavorite(request: Request, env: Env, recipeId: strin
     const recipe = await setFavorite(env.DB, recipeId, body.favorite)
     return recipe ? Response.json(recipe) : recipeNotFound()
   } catch { return validationError('Invalid favorite request') }
+}
+
+function parseCookLog(input: unknown): { rating?: number; note?: string } {
+  if (!input || typeof input !== 'object') throw new Error('Invalid cook log')
+  const { rating, note } = input as { rating?: unknown; note?: unknown }
+  if (rating !== undefined && (typeof rating !== 'number' || !Number.isInteger(rating) || rating < 1 || rating > 5)) throw new Error('rating must be a whole number from 1 to 5')
+  if (note !== undefined && typeof note !== 'string') throw new Error('note must be text')
+  const normalizedNote = note?.trim()
+  if (note !== undefined && !normalizedNote) throw new Error('note cannot be blank')
+  if (normalizedNote && normalizedNote.length > 1000) throw new Error('note must be at most 1000 characters')
+  return { rating: rating as number | undefined, note: normalizedNote }
+}
+
+export async function handleCookLogs(request: Request, env: Env, recipeId: string, logId?: string): Promise<Response> {
+  try {
+    if (request.method === 'POST' && !logId) {
+      const recipe = await createCookLog(env.DB, recipeId, parseCookLog(await request.json()))
+      return recipe ? Response.json(recipe, { status: 201 }) : recipeNotFound()
+    }
+    if (request.method === 'DELETE' && logId) {
+      const recipe = await deleteCookLog(env.DB, recipeId, logId)
+      return recipe ? Response.json(recipe) : recipeNotFound()
+    }
+    return new Response(null, { status: 405 })
+  } catch (error) { return validationError(error instanceof Error ? error.message : 'Invalid cook log') }
 }

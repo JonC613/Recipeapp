@@ -1,7 +1,7 @@
 import { Link } from 'react-router'
 import { useEffect, useState } from 'react'
 import type { GrocerySection, MealPlanWeek } from '../domain/meal-plan/schema.js'
-import { listRecipes, type RecipeSummary } from '../services/recipes'
+import { cookingSignal, listRecipes, type RecipeSummary } from '../services/recipes'
 import { addCustomGroceryItem, assignDinner, generateGroceryList, getMealPlanWeek, removeDinner, removeGroceryItem, setGroceryItemChecked } from '../services/meal-plans'
 
 const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -40,5 +40,5 @@ export function MealPlanPage() {
 
 function RecipeSelector({ recipes, busy, label, onSelect }: { recipes: RecipeSummary[]; busy: boolean; label: string; onSelect: (id: string) => void }) {
   const [selected, setSelected] = useState('')
-  return <div className="meal-plan__selector"><label>{label}<select value={selected} onChange={(event) => setSelected(event.target.value)}><option value="">Select a saved recipe</option>{recipes.map((recipe) => <option key={recipe.id} value={recipe.id}>{recipe.title}</option>)}</select></label><button type="button" disabled={busy || !selected} onClick={() => { onSelect(selected); setSelected('') }}>{label}</button></div>
+  return <div className="meal-plan__selector"><label>{label}<select value={selected} onChange={(event) => setSelected(event.target.value)}><option value="">Select a saved recipe</option>{recipes.map((recipe) => <option key={recipe.id} value={recipe.id}>{[recipe.title, cookingSignal(recipe)].filter(Boolean).join(' — ')}</option>)}</select></label><button type="button" disabled={busy || !selected} onClick={() => { onSelect(selected); setSelected('') }}>{label}</button></div>
 }

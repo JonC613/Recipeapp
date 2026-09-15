@@ -9,22 +9,28 @@ export interface StoredRecipe extends NormalizedManualRecipe {
   source: RecipeSource
   createdAt: string
   updatedAt: string
+  cookCount: number
+  lastCookedAt?: string
+  averageRating?: number
+  cookLogs: CookLog[]
 }
+
+export interface CookLog { id: string; rating?: number; note?: string; cookedAt: string }
 
 type RecipeRow = {
   id: string; title: string; description: string | null; servings: number | null
   prep_minutes: number | null; cook_minutes: number | null; total_minutes: number | null
   cuisine: string | null; category: string | null; notes: string | null; favorite: number
-  source_type: 'manual' | 'url' | 'text' | 'pdf' | 'image'; source_url: string | null; source_name: string | null; source_r2_key: string | null; graphic_r2_key: string | null; graphic_generated_at: string | null; created_at: string; updated_at: string
+  source_type: 'manual' | 'url' | 'text' | 'pdf' | 'image'; source_url: string | null; source_name: string | null; source_r2_key: string | null; graphic_r2_key: string | null; graphic_generated_at: string | null; created_at: string; updated_at: string; cook_count?: number; last_cooked_at?: string | null; average_rating?: number | null
 }
 
-function mapRecipe(row: RecipeRow): Omit<StoredRecipe, 'ingredients' | 'instructions' | 'tags'> {
+function mapRecipe(row: RecipeRow): Omit<StoredRecipe, 'ingredients' | 'instructions' | 'tags' | 'cookLogs'> {
   return {
     id: row.id, title: row.title, description: row.description ?? undefined, servings: row.servings ?? undefined,
     prepMinutes: row.prep_minutes ?? undefined, cookMinutes: row.cook_minutes ?? undefined,
     totalMinutes: row.total_minutes ?? undefined, cuisine: row.cuisine ?? undefined,
     category: row.category ?? undefined, notes: row.notes ?? undefined, favorite: row.favorite === 1,
-    source: row.source_type === 'url' && row.source_url ? { type: 'url', originalUrl: row.source_url } : row.source_type === 'text' ? { type: 'text' } : row.source_type === 'pdf' && row.source_r2_key ? { type: 'pdf', r2ObjectKey: row.source_r2_key, sourceName: row.source_name ?? undefined } : row.source_type === 'image' && row.source_r2_key ? { type: 'image', r2ObjectKey: row.source_r2_key, sourceName: row.source_name ?? undefined } : { type: 'manual' }, graphicAvailable: Boolean(row.graphic_r2_key), createdAt: row.created_at, updatedAt: row.updated_at,
+    source: row.source_type === 'url' && row.source_url ? { type: 'url', originalUrl: row.source_url } : row.source_type === 'text' ? { type: 'text' } : row.source_type === 'pdf' && row.source_r2_key ? { type: 'pdf', r2ObjectKey: row.source_r2_key, sourceName: row.source_name ?? undefined } : row.source_type === 'image' && row.source_r2_key ? { type: 'image', r2ObjectKey: row.source_r2_key, sourceName: row.source_name ?? undefined } : { type: 'manual' }, graphicAvailable: Boolean(row.graphic_r2_key), createdAt: row.created_at, updatedAt: row.updated_at, cookCount: Number(row.cook_count ?? 0), lastCookedAt: row.last_cooked_at ?? undefined, averageRating: row.average_rating ?? undefined,
   }
 }
 
@@ -43,7 +49,7 @@ export async function createRecipe(db: D1Database, recipe: NormalizedManualRecip
   return (await getRecipe(db, id))!
 }
 
-export async function listRecipes(db: D1Database, criteria: RecipeSearchCriteria = {}): Promise<Array<Pick<StoredRecipe, 'id' | 'title' | 'favorite' | 'graphicAvailable' | 'prepMinutes' | 'cookMinutes' | 'category' | 'updatedAt'>>> {
+export async function listRecipes(db: D1Database, criteria: RecipeSearchCriteria = {}): Promise<Array<Pick<StoredRecipe, 'id' | 'title' | 'favorite' | 'graphicAvailable' | 'prepMinutes' | 'cookMinutes' | 'category' | 'updatedAt' | 'cookCount' | 'lastCookedAt' | 'averageRating'>>> {
   const clauses: string[] = []
   const values: Array<string | number> = []
   const match = (value: string) => `%${value}%`
@@ -58,8 +64,8 @@ export async function listRecipes(db: D1Database, criteria: RecipeSearchCriteria
   if (criteria.cuisine) { clauses.push('r.cuisine LIKE ? COLLATE NOCASE'); values.push(match(criteria.cuisine)) }
   if (criteria.category) { clauses.push('r.category LIKE ? COLLATE NOCASE'); values.push(match(criteria.category)) }
   const where = clauses.length ? ` WHERE ${clauses.join(' AND ')}` : ''
-  const { results } = await db.prepare(`SELECT r.id, r.title, r.favorite, r.graphic_r2_key, r.prep_minutes, r.cook_minutes, r.category, r.updated_at FROM recipes r${where} ORDER BY r.updated_at DESC`).bind(...values).all<{ id: string; title: string; favorite: number; graphic_r2_key: string | null; prep_minutes: number | null; cook_minutes: number | null; category: string | null; updated_at: string }>()
-  return results.map((row) => ({ id: row.id, title: row.title, favorite: row.favorite === 1, graphicAvailable: Boolean(row.graphic_r2_key), prepMinutes: row.prep_minutes ?? undefined, cookMinutes: row.cook_minutes ?? undefined, category: row.category ?? undefined, updatedAt: row.updated_at }))
+  const { results } = await db.prepare(`SELECT r.id, r.title, r.favorite, r.graphic_r2_key, r.prep_minutes, r.cook_minutes, r.category, r.updated_at, (SELECT COUNT(*) FROM recipe_cook_logs cl WHERE cl.recipe_id = r.id) AS cook_count, (SELECT MAX(cooked_at) FROM recipe_cook_logs cl WHERE cl.recipe_id = r.id) AS last_cooked_at, (SELECT AVG(rating) FROM recipe_cook_logs cl WHERE cl.recipe_id = r.id AND rating IS NOT NULL) AS average_rating FROM recipes r${where} ORDER BY r.updated_at DESC`).bind(...values).all<{ id: string; title: string; favorite: number; graphic_r2_key: string | null; prep_minutes: number | null; cook_minutes: number | null; category: string | null; updated_at: string; cook_count: number; last_cooked_at: string | null; average_rating: number | null }>()
+  return results.map((row) => ({ id: row.id, title: row.title, favorite: row.favorite === 1, graphicAvailable: Boolean(row.graphic_r2_key), prepMinutes: row.prep_minutes ?? undefined, cookMinutes: row.cook_minutes ?? undefined, category: row.category ?? undefined, updatedAt: row.updated_at, cookCount: Number(row.cook_count), lastCookedAt: row.last_cooked_at ?? undefined, averageRating: row.average_rating ?? undefined }))
 }
 
 const chatStopWords = new Set(['a', 'an', 'and', 'are', 'at', 'be', 'best', 'can', 'do', 'for', 'from', 'get', 'give', 'have', 'i', 'in', 'is', 'it', 'list', 'me', 'my', 'of', 'or', 'recipe', 'recipes', 'show', 'that', 'the', 'to', 'use', 'uses', 'using', 'what', 'which', 'with'])
@@ -135,19 +141,32 @@ export async function listRecipeChatContextByIds(db: D1Database, ids: string[]):
 }
 
 export async function getRecipe(db: D1Database, id: string): Promise<StoredRecipe | undefined> {
-  const row = await db.prepare('SELECT * FROM recipes WHERE id = ?').bind(id).first<RecipeRow>()
+  const row = await db.prepare(`SELECT r.*, (SELECT COUNT(*) FROM recipe_cook_logs cl WHERE cl.recipe_id = r.id) AS cook_count, (SELECT MAX(cooked_at) FROM recipe_cook_logs cl WHERE cl.recipe_id = r.id) AS last_cooked_at, (SELECT AVG(rating) FROM recipe_cook_logs cl WHERE cl.recipe_id = r.id AND rating IS NOT NULL) AS average_rating FROM recipes r WHERE r.id = ?`).bind(id).first<RecipeRow>()
   if (!row) return undefined
-  const [ingredients, instructions, tags] = await Promise.all([
+  const [ingredients, instructions, tags, cookLogs] = await Promise.all([
     db.prepare('SELECT id, original_text, quantity, quantity_text, unit, ingredient, preparation, optional, position FROM recipe_ingredients WHERE recipe_id = ? ORDER BY position').bind(id).all<Record<string, unknown>>(),
     db.prepare('SELECT id, step_number, text FROM recipe_instructions WHERE recipe_id = ? ORDER BY step_number').bind(id).all<Record<string, unknown>>(),
     db.prepare('SELECT tag FROM recipe_tags WHERE recipe_id = ? ORDER BY tag COLLATE NOCASE').bind(id).all<{ tag: string }>(),
+    db.prepare('SELECT id, rating, note, cooked_at FROM recipe_cook_logs WHERE recipe_id = ? ORDER BY cooked_at DESC, id DESC').bind(id).all<{ id: string; rating: number | null; note: string | null; cooked_at: string }>(),
   ])
   return {
     ...mapRecipe(row),
     ingredients: ingredients.results.map((item) => ({ id: String(item.id), position: Number(item.position), originalText: String(item.original_text), quantity: item.quantity as number | undefined, quantityText: item.quantity_text as string | undefined, unit: item.unit as string | undefined, ingredient: item.ingredient as string | undefined, preparation: item.preparation as string | undefined, optional: item.optional === 1 })),
     instructions: instructions.results.map((item) => ({ id: String(item.id), stepNumber: Number(item.step_number), text: String(item.text) })),
     tags: tags.results.map((item) => item.tag),
+    cookLogs: cookLogs.results.map((log) => ({ id: log.id, rating: log.rating ?? undefined, note: log.note ?? undefined, cookedAt: log.cooked_at })),
   }
+}
+
+export async function createCookLog(db: D1Database, recipeId: string, input: { rating?: number; note?: string }): Promise<StoredRecipe | undefined> {
+  if (!(await getRecipe(db, recipeId))) return undefined
+  await db.prepare('INSERT INTO recipe_cook_logs (id, recipe_id, rating, note, cooked_at) VALUES (?, ?, ?, ?, ?)').bind(crypto.randomUUID(), recipeId, input.rating ?? null, input.note ?? null, new Date().toISOString()).run()
+  return getRecipe(db, recipeId)
+}
+
+export async function deleteCookLog(db: D1Database, recipeId: string, logId: string): Promise<StoredRecipe | undefined> {
+  const result = await db.prepare('DELETE FROM recipe_cook_logs WHERE id = ? AND recipe_id = ?').bind(logId, recipeId).run()
+  return result.meta.changes ? getRecipe(db, recipeId) : undefined
 }
 
 export async function getRecipeGraphicKey(db: D1Database, id: string): Promise<string | undefined> {

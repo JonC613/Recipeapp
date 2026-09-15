@@ -15,6 +15,18 @@ test('creates a manual recipe and reads it from the library', async ({ page }) =
   await expect(page.getByText('Toss and serve.')).toBeVisible()
 })
 
+test('records a completed cook with a rating and note', async ({ page }) => {
+  await page.goto('/recipes/new')
+  await page.getByRole('textbox', { name: 'Recipe title' }).fill('History Pasta')
+  await page.getByRole('button', { name: 'Save recipe' }).click()
+  await page.getByRole('combobox', { name: 'Rating (optional)' }).selectOption('5')
+  await page.getByRole('textbox', { name: 'Cooking note (optional)' }).fill('Excellent with extra lemon.')
+  await page.getByRole('button', { name: 'Cooked it' }).click()
+  await expect(page.getByText('Excellent with extra lemon.')).toBeVisible()
+  await expect(page.getByText('5 / 5 stars')).toBeVisible()
+  await expect(page.getByText(/Cooked 1 time/)).toBeVisible()
+})
+
 test('keeps generated recipe art inside a narrow recipe page', async ({ page }) => {
   await page.goto('/recipes/new')
   await page.getByRole('textbox', { name: 'Recipe title' }).fill('Mobile Art Test')

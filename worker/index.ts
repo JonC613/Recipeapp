@@ -1,6 +1,6 @@
 import { jsonError } from './http.js'
 import { handleHealth } from './routes/health.js'
-import { handleFavorite, handleRecipes } from './routes/recipes.js'
+import { handleCookLogs, handleFavorite, handleRecipes } from './routes/recipes.js'
 import { handleImageImport, handleImageVision, handleImport, handleImportApproval, handleMealDbImport, handlePdfImport, handlePdfOcr, handleTextImport, handleUrlImport } from './routes/imports.js'
 import { handleMealDb } from './routes/mealdb.js'
 import { handleUsage } from './routes/usage.js'
@@ -33,6 +33,8 @@ export default {
     if (importMatch) return handleImport(request, env, importMatch[1])
     const recipeMatch = pathname.match(/^\/api\/recipes\/([^/]+)$/)
     if (recipeMatch) return handleRecipes(request, env, recipeMatch[1])
+    const cookLogMatch = pathname.match(/^\/api\/recipes\/([^/]+)\/cook-logs(?:\/([^/]+))?$/)
+    if (cookLogMatch) return handleCookLogs(request, env, cookLogMatch[1], cookLogMatch[2])
     const favoriteMatch = pathname.match(/^\/api\/recipes\/([^/]+)\/favorite$/)
     if (favoriteMatch && request.method === 'PATCH') return handleFavorite(request, env, favoriteMatch[1])
     const graphicMatch = pathname.match(/^\/api\/recipes\/([^/]+)\/graphic$/)

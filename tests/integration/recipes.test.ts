@@ -79,6 +79,18 @@ test('filters local D1 recipe titles case-insensitively with a partial query', a
   await expect(response.json()).resolves.toMatchObject([{ title: 'Smoky Chicken Tacos' }])
 })
 
+test('persists newest-first cook history and cascades it with recipe deletion', async () => {
+  await applyRecipeMigration(env.DB)
+  const created = await worker.fetch(new Request('https://recipeapp.test/api/recipes', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ title: 'History recipe' }) }), env)
+  const recipe = await created.json() as { id: string }
+  await env.DB.prepare("INSERT INTO recipe_cook_logs (id, recipe_id, rating, note, cooked_at) VALUES ('older', ?, 3, NULL, '2026-09-01T12:00:00.000Z'), ('newer', ?, 5, 'Great again', '2026-09-02T12:00:00.000Z')").bind(recipe.id, recipe.id).run()
+  const detail = await worker.fetch(new Request(`https://recipeapp.test/api/recipes/${recipe.id}`), env)
+  await expect(detail.json()).resolves.toMatchObject({ cookCount: 2, averageRating: 4, lastCookedAt: '2026-09-02T12:00:00.000Z', cookLogs: [{ id: 'newer', note: 'Great again' }, { id: 'older' }] })
+  await worker.fetch(new Request(`https://recipeapp.test/api/recipes/${recipe.id}`, { method: 'DELETE' }), env)
+  const remaining = await env.DB.prepare('SELECT COUNT(*) AS count FROM recipe_cook_logs WHERE recipe_id = ?').bind(recipe.id).first<{ count: number }>()
+  expect(remaining?.count).toBe(0)
+})
+
 test('retrieves Recipe Chat matches with deterministic constraints and bulk follow-up hydration', async () => {
   await applyRecipeMigration(env.DB)
   const add = async (body: Record<string, unknown>) => worker.fetch(new Request('https://recipeapp.test/api/recipes', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ instructions: [{ text: 'Cook.' }], ...body }) }), env).then((response) => response.json() as Promise<{ id: string }>)
