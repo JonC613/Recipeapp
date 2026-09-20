@@ -20,15 +20,16 @@ or TheMealDB. Every import preserves its provenance, requires review, and only c
 after **Review and save**.
 
 Saved recipes can be opened in read-only Cooking Mode, assigned to a Sunday-based weekly dinner plan,
-and used to generate an editable persistent grocery checklist. **Recipe Chat** answers bounded,
-read-only questions against saved recipes and links its citations to their recipe detail pages. The
+and used to generate an editable persistent grocery checklist. **Recipe Chat** keeps conversation history,
+uses the OpenAI Agents SDK to answer from saved recipes and meal plans, links citations to recipe detail
+pages, and previews recipe variations, meal-plan changes, or grocery-list changes for explicit approval. The
 owner-facing **Usage & Costs** page shows application activity and, only when separately configured,
 safe Cloudflare and OpenAI reporting summaries.
 
 Text, OCR, image extraction, and Recipe Chat use Worker-only OpenAI credentials. Local automated tests
 use controlled doubles and make no OpenAI requests. Keep `OPENAI_API_KEY` only in an ignored local `.env`
-variant; use `OPENAI_MODEL=gpt-5-mini` unless deliberately evaluating another model. Never use a
-browser-prefixed variable or commit a credential.
+variant. Recipe Chat uses `RECIPE_CHAT_MODEL=gpt-5.6-luna`; extraction and OCR retain their separately
+configured models. Never use a browser-prefixed variable or commit a credential.
 
 ## Validation
 

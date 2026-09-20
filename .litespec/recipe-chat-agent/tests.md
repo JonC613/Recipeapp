@@ -1,13 +1,13 @@
 ---
 feature: recipe-chat-agent
 artifact: tests
-status: implementing
+status: done
 owner: user
-version: 0.3
+version: 0.4
 created: 2026-09-03
-updated: 2026-09-05
-spec_version: 0.3
-plan_version: 0.3
+updated: 2026-09-19
+spec_version: 0.4
+plan_version: 0.4
 ---
 
 # Test Plan: Recipe Chat Agent
@@ -50,6 +50,16 @@ Use Worker tests with deterministic D1 fixtures and provider doubles for retriev
 | AC-07.2 | T-26 | Automated | Planned |
 | AC-07.3 | T-27 | Automated | Planned |
 | AC-07.4 | T-28 | Automated + manual review | Planned |
+| AC-08.1 | T-30 | Automated | Passing |
+| AC-08.2 | T-30 | Automated | Passing |
+| AC-09.1 | T-31 | Automated | Passing |
+| AC-09.2 | T-31 | Automated | Passing |
+| AC-10.1 | T-32, T-34 | Automated | Passing |
+| AC-10.2 | T-32 | Automated | Passing |
+| AC-11.1 | T-33, T-34 | Automated | Passing |
+| AC-11.2 | T-33 | Automated | Passing |
+| AC-12.1 | T-30 | Automated | Passing |
+| AC-12.2 | T-35 | Automated | Passing |
 
 Every current-release acceptance criterion must appear exactly once in this table and map to at least one test or documented manual exception.
 
@@ -332,3 +342,36 @@ Offline completion requires the rubric, dataset, review-status gates, and report
 |---|---|---|---|---|
 | 0.1 | 2026-09-03 | Initial draft | Derived from approved specification and plan | All |
 | 0.3 | 2026-09-05 | Revised traceability and retrieval/reliability/follow-up/evaluation checks | Owner approved plan v0.3; reconciles historical coverage claims | T-11–T-29, AC-04.1–AC-07.4, NFR-05–NFR-06 |
+| 0.4 | 2026-09-19 | Added persistent conversation, tool-use, streaming, and reviewed-action coverage | Agents SDK assistant amendment | T-30–T-35, AC-08.1–AC-12.2 |
+
+## Version 0.4 evidence additions
+
+### T-30 — Persist and restore a streamed conversation
+- Covers: AC-08.1, AC-08.2, AC-12.1
+- Level: Worker integration
+- Expected: Typed events finish with the same two-message conversation later returned by GET.
+
+### T-31 — Validate library references and source labels
+- Covers: AC-09.1, AC-09.2
+- Level: Worker and component
+- Expected: Unknown IDs fail safely; valid citations link to recipes and general/mixed content is labeled.
+
+### T-32 — Preview and apply one recipe variation
+- Covers: AC-10.1, AC-10.2
+- Level: Worker integration
+- Expected: No variation exists before Apply; one linked variation exists afterward; a repeat cannot duplicate it.
+
+### T-33 — Cancel and stale action previews
+- Covers: AC-11.1, AC-11.2
+- Level: Worker integration
+- Expected: Cancel performs no cooking-data write and changed recipe/plan revisions reject Apply.
+
+### T-34 — Operate proposal controls in the browser
+- Covers: AC-10.1, AC-11.1
+- Level: Component
+- Expected: Preview disclosure and Apply/Cancel state are accessible and update from the server response.
+
+### T-35 — Stop an active turn
+- Covers: AC-12.2
+- Level: Component
+- Expected: Abort restores the Send control and no Apply call occurs.

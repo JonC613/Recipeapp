@@ -103,3 +103,11 @@
   Library and Meal Plan. The Worker exposes recipe-scoped create/delete routes; list responses omit
   individual notes. Source: `.litespec/cooking-history-feedback/` and
   `migrations/0013_recipe_cook_logs.sql`.
+
+## 2026-09-19
+
+- **Recipe Chat Agents SDK upgrade implemented:** Replaced the single-turn read-only chat surface with
+  persistent D1 conversations, streamed typed events, bounded saved-recipe and meal-plan tools, linked
+  citations, and explicit Apply/Cancel proposals for recipe variations, meal-plan assignments, and grocery
+  changes. Recipe adaptations preserve ancestry, stale proposals fail safely, and action application is
+  idempotent. Source: `.litespec/recipe-chat-agent/` and `migrations/0014_recipe_chat_assistant.sql`.

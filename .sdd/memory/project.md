@@ -56,9 +56,9 @@ service boundaries.
   resource usage, and organization-level OpenAI usage/cost reporting with independent availability states.
 - Cooks can open a read-only Cooking Mode from a saved recipe, follow one ordered instruction at a time,
   move locally between bounded steps, keep ingredients visible, and return to the normal detail view.
-- The owner can use Recipe Chat to ask questions about saved recipes, receive a concise answer with links
-  to cited recipes, and recover clearly from no-match or temporary service outcomes. Chat is browser-session
-  only and performs no recipe, plan, grocery, or other data mutation.
+- The owner can keep and revisit Recipe Chat conversations, receive streamed answers grounded in saved recipes
+  and meal plans, follow recipe citations, and stop a turn. Recipe variations, meal-plan assignments, and
+  grocery changes appear as previews and run only after explicit Apply; Cancel leaves application data intact.
 - Cooks can plan one saved dinner per day in navigable Sunday-based weeks, then open a planned recipe's
   normal detail or Cooking Mode view. Each week persists independently in D1.
 - Cooks can explicitly generate or update a persistent grocery checklist from planned ingredients. The
@@ -76,9 +76,9 @@ service boundaries.
 
 ## Boundaries
 
-- Application authentication, semantic/vector search, recipe ranking, persistent conversation history, and
-  action-capable conversational behavior are not implemented. Recipe Chat provides a bounded, read-only
-  conversational layer over deterministically retrieved saved recipes only.
+- Application authentication, semantic/vector search, and recipe ranking are not implemented. Recipe Chat
+  keeps bounded D1 conversation history and uses Worker-owned, read-only agent tools; its only write behavior
+  is through persisted, explicitly approved, stale-checked action proposals.
 - AI text parsing and OCR use Worker-only OpenAI credentials. OCR requires explicit user action, is
   limited to one attempt per retained import, uses a temporary `user_data` provider file with a
   one-hour expiry fallback, and attempts immediate deletion. Automated tests use controlled doubles

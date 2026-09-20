@@ -17,9 +17,9 @@ sdd: {"profile_version":1,"assumptions":[]}
 - A Cloudflare Worker under `worker/` provides recipe CRUD, health, and import routes under `/api`.
 - The owner-only Usage & Costs dashboard uses a read-only Worker route with bounded provider adapters;
   reporting credentials remain Worker secrets and each provider can fail independently.
-- Recipe Chat is a separate owner-facing React route with browser-session-only messages. A Worker route
-  coordinates bounded lexical saved-recipe retrieval and one strict OpenAI answer/citation request without
-  persisting chat history or exposing a mutation surface.
+- Recipe Chat is a separate owner-facing React route backed by persistent D1 conversations. A Worker-owned
+  OpenAI Agents SDK runner exposes bounded recipe-search, recipe-read, and meal-plan-read tools. Proposed
+  recipe variations, meal-plan assignments, and grocery changes remain inert until explicit approval.
 - D1 binding `DB` holds recipes plus ordered ingredients, instructions, tags, and retained URL/text/PDF/image
   import attempts. Each approved import records a unique `approved_recipe_id`; the recipe schema
   reserves an ownership column for future multi-user support. Private R2 binding `RECIPE_SOURCES`
@@ -79,10 +79,9 @@ sdd: {"profile_version":1,"assumptions":[]}
 - `/admin/usage` reads the owner-facing `GET /api/admin/usage` contract, which aggregates application
   counts, Cloudflare usage, OpenAI organization usage/costs, and optional budget state without returning
   provider credentials or raw responses.
-- `/recipes/chat` uses `POST /api/chat/recipes`. The Worker rejects blank/oversized questions, returns a
-  deterministic no-match result without calling the provider when no saved recipe candidate exists, and
-  otherwise passes a bounded recipe projection to an OpenAI Responses request. It validates structured
-  answer citations against candidate IDs and returns only answer text plus Worker-derived recipe links.
+- `/recipes/chat` lists, creates, opens, and deletes conversations under `/api/chat/recipes`. Message turns
+  stream typed NDJSON events, persist completed or interrupted outcomes, and validate cited recipe IDs before
+  returning Worker-derived references. Apply and cancel endpoints resolve persisted action proposals once.
 - `/recipes/:recipeId/cook` reuses the typed recipe-read service and keeps selected instruction position
   only in browser memory; it does not mutate the recipe or call a new Worker endpoint.
 - `POST /api/recipes/:id/graphic` explicitly generates one low-quality square recipe graphic through the
@@ -130,9 +129,9 @@ sdd: {"profile_version":1,"assumptions":[]}
 - Grocery generation only reads planned recipes' ordered `original_text` lines, groups case-insensitive
   whitespace-normalized exact matches, and classifies items locally. It never sums quantities or silently
   refreshes an existing checklist; retained custom items and eligible checked state survive explicit updates.
-- Recipe Chat makes at most one provider request for a valid question with candidate recipes, performs no
-  D1 write or R2 read, treats questions and recipe fields as untrusted data, and never returns credentials,
-  raw provider output, private import/source data, or provider-controlled links. It has no vector search,
-  web retrieval, persistent memory, or action capability.
+- Recipe Chat tools use bounded D1 projections and never expose credentials, raw provider output, private
+  import/source data, or provider-controlled links. Data-changing proposals require a separate explicit Apply
+  request, detect stale recipe or meal-plan state, and resolve once; recipe adaptations create a new recipe
+  linked to its source instead of overwriting the original. It has no vector search or web retrieval.
 - Recipe Graphics are owner-confirmed, recipe-scoped, and generated at most once per recipe in the current
   release; failures do not create a stored graphic, and private R2 object keys remain Worker-only.

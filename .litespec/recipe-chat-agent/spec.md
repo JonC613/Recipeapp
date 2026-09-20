@@ -1,11 +1,11 @@
 ---
 feature: recipe-chat-agent
 artifact: spec
-status: implementing
+status: done
 owner: user
-version: 0.3
+version: 0.4
 created: 2026-09-03
-updated: 2026-09-05
+updated: 2026-09-19
 ---
 
 # Specification: Recipe Chat Agent
@@ -219,3 +219,61 @@ The React/Vite SPA uses React Router routes and typed `src/services` wrappers. T
 | 0.1 | 2026-09-03 | Initial draft | Initial discovery | All |
 | 0.2 | 2026-09-05 | Proposed retrieval, reliability, and transient follow-up improvements | Code review found recency-only matching, missing duration context, generic failures, and no follow-up context | R-06–R-09, D-02, D-04, US-04–US-06, NFR-05–NFR-06 |
 | 0.3 | 2026-09-05 | Approved scope with offline model-comparison preparation | Owner approved specification with model-evaluation addition; paid runs and model changes remain separate gates | R-10, US-07, AC-07.1–AC-07.4 |
+| 0.4 | 2026-09-19 | Upgrade to a persistent, tool-using everyday recipe assistant | Owner approved Agents SDK chat, variations, meal planning, groceries, and Apply/Cancel previews | R-11–R-16, US-08–US-12 |
+
+## Version 0.4 amendment — Agents SDK recipe assistant
+
+The read-only release remains the historical baseline. The current release additionally requires:
+
+- **R-11:** Run one TypeScript OpenAI Agents SDK agent with bounded read tools for saved recipes, recipe details, and meal-plan/grocery state.
+- **R-12:** Persist private conversations and messages in D1 and support list, resume, create, and delete.
+- **R-13:** Distinguish saved-library facts from general cooking guidance and validate every saved-recipe reference against current D1 records.
+- **R-14:** Create immutable recipe-variation, meal-plan, and grocery previews; no preview changes application data before Apply.
+- **R-15:** Make Apply idempotent and reject previews whose source recipe or meal-plan revision changed; Cancel never mutates cooking data.
+- **R-16:** Stream progress, answer text, references, proposals, completion, and safe failures through a typed same-origin protocol.
+
+### US-08 — Continue saved recipe conversations
+
+**Story:** As the owner, I want to resume private recipe conversations, so that follow-ups retain useful context across visits.
+
+**Acceptance criteria:**
+- **AC-08.1:** Conversations can be created, listed, reopened, and deleted inside the protected application.
+- **AC-08.2:** The server loads bounded conversation context; the browser cannot supply authoritative prior messages.
+
+### US-09 — Combine library facts with cooking guidance
+
+**Story:** As the owner, I want my library to remain the foundation while receiving useful cooking guidance, so that answers are both personal and practical.
+
+**Acceptance criteria:**
+- **AC-09.1:** Library claims use tool-retrieved recipes and server-validated citations.
+- **AC-09.2:** General or mixed cooking guidance is visibly labeled and cannot claim to be saved-recipe data.
+
+### US-10 — Preview and save a recipe variation
+
+**Story:** As the owner, I want to adapt a saved recipe without overwriting it, so that I can keep both versions.
+
+**Acceptance criteria:**
+- **AC-10.1:** An adaptation preview shows the proposed variation and does not write a recipe before Apply.
+- **AC-10.2:** Apply creates a separate recipe linked to the current source version; stale or repeated application cannot duplicate it.
+
+### US-11 — Preview meal-plan and grocery changes
+
+**Story:** As the owner, I want chat-assisted planning and shopping changes, so that I can act without re-entering the assistant’s suggestion.
+
+**Acceptance criteria:**
+- **AC-11.1:** Meal-plan and grocery proposals include the target week and expected plan revision.
+- **AC-11.2:** Apply uses existing plan/grocery behavior; Cancel and stale proposals preserve current data.
+
+### US-12 — See progress and control a turn
+
+**Story:** As the owner, I want streamed progress and stop controls, so that longer agent turns remain understandable and controllable.
+
+**Acceptance criteria:**
+- **AC-12.1:** A turn streams typed progress and content events and ends with a persisted completed conversation or safe error.
+- **AC-12.2:** Stopping a request returns the composer to an editable state and never applies a proposal.
+
+### Amendment boundaries
+
+- Conversation memory remains private and conversation-scoped; no permanent preference profile is introduced.
+- Web discovery, voice, guided cooking, pantry inventory, and recipes created from scratch remain deferred.
+- Production migration and deployment remain separate operations.

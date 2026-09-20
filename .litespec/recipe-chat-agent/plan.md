@@ -1,12 +1,12 @@
 ---
 feature: recipe-chat-agent
 artifact: plan
-status: implementing
+status: done
 owner: user
-version: 0.3
+version: 0.4
 created: 2026-09-03
-updated: 2026-09-08
-spec_version: 0.3
+updated: 2026-09-19
+spec_version: 0.4
 ---
 
 # Implementation Plan: Recipe Chat Agent
@@ -207,3 +207,37 @@ The Worker accepts a normalized bounded question. It returns `no_match` with no 
 |---|---|---|---|---|
 | 0.1 | 2026-09-03 | Initial draft | Derived from approved specification | All |
 | 0.3 | 2026-09-05 | Proposed ranked retrieval, recovery, session follow-ups, and offline evaluation implementation | Derived from owner-approved spec v0.3; baseline retained for provenance | R-06–R-10, US-04–US-07, A1-T1–A4-T2 |
+| 0.4 | 2026-09-19 | Agents SDK, persisted conversations, and reviewed actions | Owner approved the everyday assistant expansion | P3-T1–P5-T2 |
+
+## Version 0.4 implementation
+
+- [x] **P2-T3 — Reconcile the implemented hardening amendment**
+  - Covers: AC-04.1, AC-04.2, AC-04.3, AC-04.4, AC-04.5, AC-05.1, AC-05.2, AC-05.3, AC-05.4, AC-05.5, AC-06.1, AC-06.2, AC-06.3, AC-06.4, AC-07.1, AC-07.2, AC-07.3, AC-07.4
+  - Depends on: P2-T2
+  - Work: Retain the previously implemented ranked retrieval, bounded follow-ups, failure handling, cancellation, and offline evaluation harness as the verified baseline for this amendment.
+  - Verify: Existing Worker, component, end-to-end, and evaluation dry-run coverage remains in the repository; live paid comparison remains separately gated.
+- [x] **P3-T1 — Prove the Agents SDK Worker boundary**
+  - Covers: R-11, AC-09.1, AC-09.2
+  - Depends on: P2-T2
+  - Work: Install `@openai/agents` and Zod, configure one normal agent, deterministic function tools, structured output, disabled sensitive tracing, and bounded turns.
+  - Verify: Typecheck, Worker bundle, and provider-double Worker tests.
+- [x] **P3-T2 — Persist conversations and typed stream events**
+  - Covers: R-12, R-16, AC-08.1, AC-08.2, AC-12.1
+  - Depends on: P3-T1
+  - Work: Add additive D1 tables, conversation CRUD, server-loaded context, NDJSON event streaming, citation revalidation, and safe failure mapping.
+  - Verify: Worker tests inspect streamed events and restored messages.
+- [x] **P4-T1 — Add immutable action previews and variation ancestry**
+  - Covers: R-14–R-15, AC-10.1, AC-10.2, AC-11.1, AC-11.2
+  - Depends on: P3-T2
+  - Work: Persist typed proposals, expose Apply/Cancel endpoints, validate recipe timestamps and plan revisions, create separate variations, and preserve proposal terminal state.
+  - Verify: Worker tests prove no pre-Apply write, one-time Apply, ancestry, and Cancel behavior.
+- [x] **P5-T1 — Build the persistent streamed chat UI**
+  - Covers: US-08–US-12, AC-09.2, AC-10.1, AC-11.1, AC-12.1
+  - Depends on: P3-T2, P4-T1
+  - Work: Add conversation navigation, streaming status/text, source labels, citations, preview cards, Apply/Cancel, delete, stop, and responsive layout.
+  - Verify: Browser component tests cover answer, preview application, and stop.
+- [x] **P5-T2 — Complete regression and memory evidence**
+  - Covers: NFR-03–NFR-06, AC-12.2
+  - Depends on: P5-T1
+  - Work: Run relevant suites, update Project Memory, and reconcile delivery-state evidence without claiming deployment.
+  - Verify: Recorded passing commands and structural/memory validation.

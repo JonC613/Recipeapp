@@ -18,17 +18,19 @@
     "test:worker": "vitest run --config vitest.worker.config.ts",
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:e2e": "playwright test",
-    "test:e2e:deployed": "playwright test --project=deployed-smoke"
-    ,"eval:recipe-chat:dry": "node scripts/recipe-chat-eval.mjs"
+    "test:e2e:deployed": "playwright test --project=deployed-smoke",
+    "eval:recipe-chat:dry": "node scripts/recipe-chat-eval.mjs"
   },
   "engines": {
     "node": ">=22.12.0"
   },
   "dependencies": {
+    "@openai/agents": "^0.18.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router": "^7.18.2",
-    "unpdf": "^1.8.1"
+    "unpdf": "^1.8.1",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.54.1",

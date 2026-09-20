@@ -13,6 +13,7 @@ export interface StoredRecipe extends NormalizedManualRecipe {
   lastCookedAt?: string
   averageRating?: number
   cookLogs: CookLog[]
+  variationOf?: { id: string; title: string }
 }
 
 export interface CookLog { id: string; rating?: number; note?: string; cookedAt: string }
@@ -143,11 +144,12 @@ export async function listRecipeChatContextByIds(db: D1Database, ids: string[]):
 export async function getRecipe(db: D1Database, id: string): Promise<StoredRecipe | undefined> {
   const row = await db.prepare(`SELECT r.*, (SELECT COUNT(*) FROM recipe_cook_logs cl WHERE cl.recipe_id = r.id) AS cook_count, (SELECT MAX(cooked_at) FROM recipe_cook_logs cl WHERE cl.recipe_id = r.id) AS last_cooked_at, (SELECT AVG(rating) FROM recipe_cook_logs cl WHERE cl.recipe_id = r.id AND rating IS NOT NULL) AS average_rating FROM recipes r WHERE r.id = ?`).bind(id).first<RecipeRow>()
   if (!row) return undefined
-  const [ingredients, instructions, tags, cookLogs] = await Promise.all([
+  const [ingredients, instructions, tags, cookLogs, variation] = await Promise.all([
     db.prepare('SELECT id, original_text, quantity, quantity_text, unit, ingredient, preparation, optional, position FROM recipe_ingredients WHERE recipe_id = ? ORDER BY position').bind(id).all<Record<string, unknown>>(),
     db.prepare('SELECT id, step_number, text FROM recipe_instructions WHERE recipe_id = ? ORDER BY step_number').bind(id).all<Record<string, unknown>>(),
     db.prepare('SELECT tag FROM recipe_tags WHERE recipe_id = ? ORDER BY tag COLLATE NOCASE').bind(id).all<{ tag: string }>(),
     db.prepare('SELECT id, rating, note, cooked_at FROM recipe_cook_logs WHERE recipe_id = ? ORDER BY cooked_at DESC, id DESC').bind(id).all<{ id: string; rating: number | null; note: string | null; cooked_at: string }>(),
+    db.prepare('SELECT r.id, r.title FROM recipe_variations v JOIN recipes r ON r.id = v.source_recipe_id WHERE v.recipe_id = ?').bind(id).first<{ id: string; title: string }>(),
   ])
   return {
     ...mapRecipe(row),
@@ -155,6 +157,7 @@ export async function getRecipe(db: D1Database, id: string): Promise<StoredRecip
     instructions: instructions.results.map((item) => ({ id: String(item.id), stepNumber: Number(item.step_number), text: String(item.text) })),
     tags: tags.results.map((item) => item.tag),
     cookLogs: cookLogs.results.map((log) => ({ id: log.id, rating: log.rating ?? undefined, note: log.note ?? undefined, cookedAt: log.cooked_at })),
+    variationOf: variation ?? undefined,
   }
 }
 

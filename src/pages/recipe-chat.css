@@ -1,0 +1,66 @@
+.recipe-chat-page { max-width: 76rem; }
+.recipe-chat__heading { align-items: center; padding-bottom: .25rem; }
+.recipe-chat__heading h1 { letter-spacing: -.035em; }
+.recipe-chat__new, .recipe-chat__start button { min-height: 2.85rem; border: 1px solid #244234; border-radius: 999px; padding: .55rem 1rem; background: #244234; color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+.recipe-chat__new span { margin-right: .2rem; font-size: 1.15em; }
+.recipe-chat__layout { display: grid; grid-template-columns: minmax(13rem, 17rem) minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+.recipe-chat__layout--empty { display: block; max-width: 42rem; }
+.recipe-chat__sidebar { display: grid; gap: .75rem; position: sticky; top: 1rem; padding: .85rem; border: 1px solid #d2d9d1; border-radius: 1rem; background: #fffdf8; box-shadow: 0 8px 28px rgb(36 66 52 / 7%); }
+.recipe-chat__sidebar-heading { display: flex; align-items: center; justify-content: space-between; padding: .25rem .25rem .4rem; color: #263b30; }
+.recipe-chat__sidebar-heading span { min-width: 1.65rem; padding: .14rem .4rem; border-radius: 999px; background: #edf4ed; color: #405348; font-size: .78rem; font-weight: 800; text-align: center; }
+.recipe-chat__conversation-list { display: grid; gap: .35rem; }
+.recipe-chat__conversation-list button { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .55rem; align-items: center; min-height: 2.8rem; width: 100%; border: 1px solid transparent; border-radius: .65rem; padding: .6rem .7rem; background: transparent; color: #2d3d33; font: inherit; text-align: left; cursor: pointer; }
+.recipe-chat__conversation-list button:hover { background: #f3f6f1; }
+.recipe-chat__conversation-list button.is-active { border-color: #a9c4af; background: #e7f1e8; box-shadow: inset 3px 0 #3f7558; }
+.recipe-chat__conversation-list button span { overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.recipe-chat__conversation-list small { color: #68746c; font-size: .72rem; white-space: nowrap; }
+.recipe-chat__delete { min-height: 2.45rem; border: 0; border-top: 1px solid #e4e0d7; padding: .65rem .45rem .1rem; background: transparent; color: #9a3f29; font: inherit; font-size: .88rem; font-weight: 750; text-align: left; cursor: pointer; }
+.recipe-chat__delete:hover { color: #722b19; text-decoration: underline; text-underline-offset: .2em; }
+.recipe-chat__delete:disabled { opacity: .55; cursor: wait; }
+.recipe-chat__main { display: grid; gap: 1rem; min-width: 0; }
+.recipe-chat__welcome, .recipe-chat__start { display: flex; gap: 1rem; align-items: flex-start; padding: clamp(1.15rem, 4vw, 1.75rem); border: 1px solid #d5dfd5; border-radius: 1rem; background: linear-gradient(135deg, #f4faf4, #fff9e9); }
+.recipe-chat__welcome > span, .recipe-chat__start > span { display: grid; place-items: center; flex: 0 0 2.35rem; height: 2.35rem; border-radius: 50%; background: #244234; color: #fff6dc; font-size: 1.1rem; }
+.recipe-chat__welcome h2, .recipe-chat__start h2 { margin: 0 0 .35rem; color: #20372b; font-family: Georgia, serif; font-size: clamp(1.25rem, 4vw, 1.6rem); }
+.recipe-chat__welcome p, .recipe-chat__start p { margin: 0; color: #4e5d54; line-height: 1.55; }
+.recipe-chat__start { display: grid; justify-items: start; padding: clamp(1.5rem, 5vw, 2.25rem); }
+.recipe-chat__messages { min-height: 13rem; }
+.recipe-chat__source { width: fit-content; padding: .25rem .55rem; border-radius: 999px; background: #edf4ed; color: #405348; font-size: .82rem; font-weight: 700; }
+.recipe-chat__proposal { display: grid; gap: .65rem; margin-top: .35rem; padding: 1rem; border: 2px solid #d18427; border-radius: .75rem; background: #fff9e9; }
+.recipe-chat__proposal dl { display: grid; gap: .35rem; margin: 0; }
+.recipe-chat__proposal dl div { display: grid; grid-template-columns: minmax(7rem, .5fr) 1fr; gap: .75rem; }
+.recipe-chat__proposal dt { font-weight: 700; text-transform: capitalize; }
+.recipe-chat__proposal dd { margin: 0; overflow-wrap: anywhere; }
+.recipe-chat__recipe-preview { display: grid; gap: .5rem; padding-top: .25rem; }
+.recipe-chat__recipe-preview h3, .recipe-chat__recipe-preview h4, .recipe-chat__recipe-preview p { margin: 0; }
+.recipe-chat__recipe-preview h3 { font-family: Georgia, serif; font-size: 1.35rem; }
+.recipe-chat__recipe-preview h4 { margin-top: .3rem; font-size: .95rem; text-transform: uppercase; letter-spacing: .06em; }
+.recipe-chat__recipe-preview ul, .recipe-chat__recipe-preview ol { display: grid; gap: .35rem; margin: 0; padding-left: 1.35rem; }
+.recipe-chat__recipe-preview li { line-height: 1.45; }
+.recipe-chat__proposal-actions { display: flex; gap: .65rem; }
+.recipe-chat__proposal-actions button { min-height: 2.5rem; border: 1px solid #244234; border-radius: .5rem; padding: .45rem .9rem; background: #244234; color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+.recipe-chat__proposal-actions .button-secondary { background: transparent; color: #244234; }
+.recipe-chat__form { box-shadow: 0 10px 30px rgb(36 66 52 / 6%); }
+.recipe-chat__form textarea::placeholder { color: #7b857e; }
+.recipe-chat__form-footer > div { display: flex; gap: .6rem; }
+
+@media (max-width: 42rem) {
+  .recipe-chat-page { gap: 1.1rem; }
+  .recipe-chat__heading { display: grid; gap: 1rem; }
+  .recipe-chat__heading h1 { font-size: clamp(2.75rem, 15vw, 4rem); }
+  .recipe-chat__heading .page-heading__description { font-size: .98rem; }
+  .recipe-chat__new { width: fit-content; min-height: 2.7rem; }
+  .recipe-chat__layout { grid-template-columns: 1fr; gap: 1rem; }
+  .recipe-chat__layout--empty { display: block; }
+  .recipe-chat__sidebar { position: static; gap: .6rem; padding: .75rem; border-radius: .8rem; box-shadow: none; }
+  .recipe-chat__conversation-list { display: flex; gap: .5rem; overflow-x: auto; padding: 0 0 .2rem; scroll-snap-type: x proximity; }
+  .recipe-chat__conversation-list button { flex: 0 0 min(15rem, 75vw); scroll-snap-align: start; }
+  .recipe-chat__delete { padding-top: .55rem; text-align: center; }
+  .recipe-chat__welcome { padding: 1rem; }
+  .recipe-chat__start { gap: .8rem; padding: 1.25rem; }
+  .recipe-chat__messages { min-height: 0; }
+  .recipe-chat__form { padding: 1rem; }
+  .recipe-chat__form-footer { align-items: center; }
+  .recipe-chat__form-footer > div { width: auto; margin-left: auto; }
+  .recipe-chat__form-footer button { width: auto; min-width: 5.5rem; }
+  .recipe-chat__proposal dl div { grid-template-columns: 1fr; gap: .1rem; }
+}
