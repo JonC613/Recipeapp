@@ -24,7 +24,7 @@ test('records a completed cook with a rating and note', async ({ page }) => {
   await page.getByRole('button', { name: 'Cooked it' }).click()
   await expect(page.getByText('Excellent with extra lemon.')).toBeVisible()
   await expect(page.getByText('5 / 5 stars')).toBeVisible()
-  await expect(page.getByText(/Cooked 1 time/)).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Cooking history' }).getByText(/Cooked 1 time/)).toBeVisible()
 })
 
 test('keeps generated recipe art inside a narrow recipe page', async ({ page }) => {

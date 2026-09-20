@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { makeRecipe } from './recipe-fixtures'
 
 const available = { id: 'ocr-import-1', sourceType: 'pdf', sourceName: 'scan.pdf', sourceR2Key: 'imports/scan/source.pdf', status: 'failed', failureCode: 'PDF_UNREADABLE', ocrStatus: 'available', createdAt: '2026-08-29T00:00:00.000Z' }
 const ready = { ...available, status: 'ready', failureCode: undefined, ocrStatus: 'succeeded', extractionMethod: 'ocr', sourceText: 'Scanned soup\n1 cup stock\nSimmer.', draft: { title: 'Scanned soup', ingredients: [{ originalText: '1 cup stock' }], instructions: [{ text: 'Simmer.' }], source: { type: 'pdf', sourceName: 'scan.pdf', r2ObjectKey: 'imports/scan/source.pdf', importedAt: '2026-08-29T00:00:00.000Z' } } }
@@ -21,7 +22,7 @@ test('explicit OCR shows progress, reaches review/save, and cannot be repeated',
     await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ id: 'ocr-recipe-1', title: 'Scanned soup', favorite: false, source: { type: 'pdf', sourceName: 'scan.pdf', r2ObjectKey: 'imports/scan/source.pdf' } }) })
   })
   await page.route('**/api/import/ocr-import-1', async (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(approved ? { ...ready, approvedRecipeId: 'ocr-recipe-1' } : isReady ? ready : available) }))
-  await page.route('**/api/recipes/ocr-recipe-1', async (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ id: 'ocr-recipe-1', title: 'Scanned soup', favorite: false, tags: [], ingredients: [{ id: 'i1', originalText: '1 cup stock', ingredient: 'stock' }], instructions: [{ id: 's1', stepNumber: 1, text: 'Simmer.' }], source: { type: 'pdf', sourceName: 'scan.pdf', r2ObjectKey: 'imports/scan/source.pdf' }, createdAt: '2026-08-29T00:00:00.000Z', updatedAt: '2026-08-29T00:00:00.000Z' }) }))
+  await page.route('**/api/recipes/ocr-recipe-1', async (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(makeRecipe({ id: 'ocr-recipe-1', title: 'Scanned soup', ingredients: [{ id: 'i1', position: 0, originalText: '1 cup stock', ingredient: 'stock' }], instructions: [{ id: 's1', stepNumber: 1, text: 'Simmer.' }], source: { type: 'pdf', sourceName: 'scan.pdf', r2ObjectKey: 'imports/scan/source.pdf' } })) }))
 
   await page.goto('/imports/ocr-import-1')
   await expect(page.getByText(/OCR uses AI credits/)).toBeVisible()

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { makeRecipe } from './recipe-fixtures'
 
 const available = { id: 'image-import-1', sourceType: 'image', sourceName: 'recipe-card.jpg', status: 'pending', visionStatus: 'available', createdAt: '2026-08-31T00:00:00.000Z' }
 const ready = { ...available, status: 'ready', visionStatus: 'succeeded', extractionMethod: 'vision', draft: { title: 'Image pasta', ingredients: [{ originalText: '1 lemon' }], instructions: [{ text: 'Cook gently.' }], source: { type: 'image', sourceName: 'recipe-card.jpg', importedAt: '2026-08-31T00:00:00.000Z' } } }
@@ -33,7 +34,7 @@ test('image extraction is explicit, progresses once, then reaches review and sav
   await page.route('**/api/import/image-import-1/extract-image', async (route) => { extractionCalls += 1; await gate; readyState = true; await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify(ready) }) })
   await page.route('**/api/import/image-import-1/approve', async (route) => route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ id: 'image-recipe-1', title: 'Image pasta', favorite: false, tags: [], ingredients: [], instructions: [], source: { type: 'image', sourceName: 'recipe-card.jpg', r2ObjectKey: 'private-key' }, createdAt: '2026-08-31T00:00:00.000Z', updatedAt: '2026-08-31T00:00:00.000Z' }) }))
   await page.route('**/api/import/image-import-1', async (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(readyState ? ready : available) }))
-  await page.route('**/api/recipes/image-recipe-1', async (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ id: 'image-recipe-1', title: 'Image pasta', favorite: false, tags: [], ingredients: [{ id: 'i1', originalText: '1 lemon' }], instructions: [{ id: 's1', stepNumber: 1, text: 'Cook gently.' }], source: { type: 'image', sourceName: 'recipe-card.jpg', r2ObjectKey: 'private-key' }, createdAt: '2026-08-31T00:00:00.000Z', updatedAt: '2026-08-31T00:00:00.000Z' }) }))
+  await page.route('**/api/recipes/image-recipe-1', async (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(makeRecipe({ id: 'image-recipe-1', title: 'Image pasta', ingredients: [{ id: 'i1', position: 0, originalText: '1 lemon' }], instructions: [{ id: 's1', stepNumber: 1, text: 'Cook gently.' }], source: { type: 'image', sourceName: 'recipe-card.jpg', r2ObjectKey: 'private-key' }, createdAt: '2026-08-31T00:00:00.000Z', updatedAt: '2026-08-31T00:00:00.000Z' })) }))
   await page.goto('/imports/image-import-1')
   await expect(page.getByText(/Extract recipe uses AI credits/)).toBeVisible(); expect(extractionCalls).toBe(0)
   await page.getByRole('button', { name: 'Extract recipe' }).click()
