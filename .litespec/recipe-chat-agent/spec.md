@@ -3,9 +3,9 @@ feature: recipe-chat-agent
 artifact: spec
 status: done
 owner: user
-version: 0.4
+version: 0.5
 created: 2026-09-03
-updated: 2026-09-19
+updated: 2026-09-20
 ---
 
 # Specification: Recipe Chat Agent
@@ -220,6 +220,7 @@ The React/Vite SPA uses React Router routes and typed `src/services` wrappers. T
 | 0.2 | 2026-09-05 | Proposed retrieval, reliability, and transient follow-up improvements | Code review found recency-only matching, missing duration context, generic failures, and no follow-up context | R-06–R-09, D-02, D-04, US-04–US-06, NFR-05–NFR-06 |
 | 0.3 | 2026-09-05 | Approved scope with offline model-comparison preparation | Owner approved specification with model-evaluation addition; paid runs and model changes remain separate gates | R-10, US-07, AC-07.1–AC-07.4 |
 | 0.4 | 2026-09-19 | Upgrade to a persistent, tool-using everyday recipe assistant | Owner approved Agents SDK chat, variations, meal planning, groceries, and Apply/Cancel previews | R-11–R-16, US-08–US-12 |
+| 0.5 | 2026-09-20 | Make Stop durable across Worker request lifetimes | Production smoke exposed late-answer persistence after browser abort | AC-12.2 |
 
 ## Version 0.4 amendment — Agents SDK recipe assistant
 
@@ -270,7 +271,7 @@ The read-only release remains the historical baseline. The current release addit
 
 **Acceptance criteria:**
 - **AC-12.1:** A turn streams typed progress and content events and ends with a persisted completed conversation or safe error.
-- **AC-12.2:** Stopping a request returns the composer to an editable state and never applies a proposal.
+- **AC-12.2:** Stopping a request returns the composer to an editable state, durably prevents a late server result from being persisted, and never applies a proposal.
 
 ### Amendment boundaries
 

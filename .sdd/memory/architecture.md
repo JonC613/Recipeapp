@@ -19,7 +19,9 @@ sdd: {"profile_version":1,"assumptions":[]}
   reporting credentials remain Worker secrets and each provider can fail independently.
 - Recipe Chat is a separate owner-facing React route backed by persistent D1 conversations. A Worker-owned
   OpenAI Agents SDK runner exposes bounded recipe-search, recipe-read, and meal-plan-read tools. Proposed
-  recipe variations, meal-plan assignments, and grocery changes remain inert until explicit approval.
+  recipe variations, meal-plan assignments, and grocery changes remain inert until explicit approval. Each
+  streamed turn has a client-generated ID and a running D1 row; the cancellation route removes that row, and
+  late runner results must atomically confirm it still exists before persisting an answer or proposal.
 - D1 binding `DB` holds recipes plus ordered ingredients, instructions, tags, and retained URL/text/PDF/image
   import attempts. Each approved import records a unique `approved_recipe_id`; the recipe schema
   reserves an ownership column for future multi-user support. Private R2 binding `RECIPE_SOURCES`

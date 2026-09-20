@@ -26,9 +26,13 @@ export async function deleteRecipeChatConversation(id: string): Promise<void> {
   if (!response.ok && response.status !== 404) throw new Error('The conversation could not be deleted.')
 }
 export const resolveRecipeChatProposal = (conversationId: string, proposalId: string, action: 'apply' | 'cancel') => jsonRequest<RecipeChatConversation>(`/api/chat/recipes/${encodeURIComponent(conversationId)}/proposals/${encodeURIComponent(proposalId)}/${action}`, { method: 'POST' })
+export async function cancelRecipeChatTurn(conversationId: string, turnId: string): Promise<void> {
+  const response = await fetch(`/api/chat/recipes/${encodeURIComponent(conversationId)}/turns/${encodeURIComponent(turnId)}/cancel`, { method: 'POST' })
+  if (!response.ok && response.status !== 404) throw new Error('Recipe Chat could not stop this response.')
+}
 
-export async function streamRecipeChatMessage(conversationId: string, message: string, onEvent: (event: RecipeChatStreamEvent) => void, signal?: AbortSignal): Promise<void> {
-  const response = await fetch(`/api/chat/recipes/${encodeURIComponent(conversationId)}/messages`, { method: 'POST', signal, headers: { accept: 'application/x-ndjson', 'content-type': 'application/json' }, body: JSON.stringify({ message }) })
+export async function streamRecipeChatMessage(conversationId: string, turnId: string, message: string, onEvent: (event: RecipeChatStreamEvent) => void, signal?: AbortSignal): Promise<void> {
+  const response = await fetch(`/api/chat/recipes/${encodeURIComponent(conversationId)}/messages`, { method: 'POST', signal, headers: { accept: 'application/x-ndjson', 'content-type': 'application/json' }, body: JSON.stringify({ message, turnId }) })
   if (!response.ok || !response.body) throw new Error('Recipe Chat is temporarily unavailable. Please try again.')
   const reader = response.body.getReader(), decoder = new TextDecoder()
   let buffered = ''

@@ -111,3 +111,11 @@
   citations, and explicit Apply/Cancel proposals for recipe variations, meal-plan assignments, and grocery
   changes. Recipe adaptations preserve ancestry, stale proposals fail safely, and action application is
   idempotent. Source: `.litespec/recipe-chat-agent/` and `migrations/0014_recipe_chat_assistant.sql`.
+
+## 2026-09-20
+
+- **Durable Recipe Chat cancellation deployed:** Worker release
+  `bec20151-8ac6-453d-b41a-ff595ae24a0e` adds client-generated turn IDs and an idempotent cancellation
+  route. Stop now removes the running D1 turn and prevents late agent results from persisting an answer or
+  proposal. Unit, component, Worker, integration, E2E, structural, and authenticated production smoke
+  validation passed; reload showed no stopped exchange, while a later normal query persisted once.

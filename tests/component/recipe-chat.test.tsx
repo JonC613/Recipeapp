@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router'
 import type { RecipeChatConversation } from '../../src/domain/recipe-chat'
 
 const service = vi.hoisted(() => ({
-  listRecipeChatConversations: vi.fn(), createRecipeChatConversation: vi.fn(), getRecipeChatConversation: vi.fn(), deleteRecipeChatConversation: vi.fn(), resolveRecipeChatProposal: vi.fn(), streamRecipeChatMessage: vi.fn(),
+  listRecipeChatConversations: vi.fn(), createRecipeChatConversation: vi.fn(), getRecipeChatConversation: vi.fn(), deleteRecipeChatConversation: vi.fn(), resolveRecipeChatProposal: vi.fn(), streamRecipeChatMessage: vi.fn(), cancelRecipeChatTurn: vi.fn(),
 }))
 vi.mock('../../src/services/recipe-chat', () => service)
 import { RecipeChatPage } from '../../src/pages/RecipeChatPage'
@@ -22,7 +22,7 @@ test('streams and persists a labeled answer with recipe citations', async () => 
     { id: 'u1', role: 'user', text: 'Find shrimp', citations: [], status: 'complete', createdAt: empty.createdAt },
     { id: 'a1', role: 'assistant', text: 'Garlic Shrimp uses shrimp.', sourceKind: 'library', citations: [{ recipeId: 'shrimp-1', title: 'Garlic Shrimp' }], status: 'complete', createdAt: empty.createdAt },
   ] }
-  service.streamRecipeChatMessage.mockImplementation(async (_id: string, _message: string, onEvent: (event: unknown) => void) => { onEvent({ type: 'progress', message: 'Searching your recipes…' }); onEvent({ type: 'text_delta', delta: 'Garlic Shrimp uses shrimp.' }); onEvent({ type: 'completed', conversation: completed }) })
+  service.streamRecipeChatMessage.mockImplementation(async (_id: string, _turnId: string, _message: string, onEvent: (event: unknown) => void) => { onEvent({ type: 'progress', message: 'Searching your recipes…' }); onEvent({ type: 'text_delta', delta: 'Garlic Shrimp uses shrimp.' }); onEvent({ type: 'completed', conversation: completed }) })
   const screen = await render(<MemoryRouter><RecipeChatPage /></MemoryRouter>)
   await expect.element(screen.getByText('Your everyday recipe assistant')).toBeVisible()
   const question = screen.getByRole('textbox', { name: 'Message Recipe Chat' })
@@ -46,13 +46,15 @@ test('renders an explicit proposal preview and applies it', async () => {
 })
 
 test('stops an in-flight streamed turn', async () => {
-  service.streamRecipeChatMessage.mockImplementation((_id: string, _message: string, onEvent: (event: unknown) => void, signal: AbortSignal) => new Promise((_resolve, reject) => { onEvent({ type: 'progress', message: 'Searching your recipes…' }); signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError'))) }))
+  service.cancelRecipeChatTurn.mockResolvedValue(undefined)
+  service.streamRecipeChatMessage.mockImplementation((_id: string, _turnId: string, _message: string, onEvent: (event: unknown) => void, signal: AbortSignal) => new Promise((_resolve, reject) => { onEvent({ type: 'progress', message: 'Searching your recipes…' }); signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError'))) }))
   const screen = await render(<MemoryRouter><RecipeChatPage /></MemoryRouter>)
   const question = screen.getByRole('textbox', { name: 'Message Recipe Chat' })
   await question.fill('Find shrimp')
   await screen.getByRole('button', { name: 'Send' }).click()
   await screen.getByRole('button', { name: 'Stop' }).click()
   await expect.element(screen.getByRole('button', { name: 'Send' })).toBeEnabled()
+  expect(service.cancelRecipeChatTurn).toHaveBeenCalledWith(empty.id, expect.any(String))
 })
 
 test('deletes the active conversation without creating a replacement', async () => {

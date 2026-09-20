@@ -52,13 +52,23 @@ export async function deleteConversation(db: D1Database, id: string): Promise<bo
   return Boolean((await db.prepare('DELETE FROM recipe_chat_conversations WHERE id = ?').bind(id).run()).meta.changes)
 }
 
-export async function addMessage(db: D1Database, input: { conversationId: string; role: 'user' | 'assistant'; text: string; sourceKind?: RecipeChatSourceKind; recipeIds?: string[]; status?: RecipeChatMessage['status'] }): Promise<string> {
-  const id = crypto.randomUUID(), timestamp = new Date().toISOString()
+export async function addMessage(db: D1Database, input: { id?: string; conversationId: string; role: 'user' | 'assistant'; text: string; sourceKind?: RecipeChatSourceKind; recipeIds?: string[]; status?: RecipeChatMessage['status'] }): Promise<string> {
+  const id = input.id ?? crypto.randomUUID(), timestamp = new Date().toISOString()
   await db.batch([
     db.prepare('INSERT INTO recipe_chat_messages (id, conversation_id, role, text, source_kind, recipe_ids_json, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').bind(id, input.conversationId, input.role, input.text, input.sourceKind ?? null, JSON.stringify(input.recipeIds ?? []), input.status ?? 'complete', timestamp),
     db.prepare(`UPDATE recipe_chat_conversations SET title = CASE WHEN title = 'New recipe chat' AND ? = 'user' THEN ? ELSE title END, updated_at = ? WHERE id = ?`).bind(input.role, input.text.slice(0, 72), timestamp, input.conversationId),
   ])
   return id
+}
+
+export async function completeRunningTurn(db: D1Database, conversationId: string, turnId: string): Promise<boolean> {
+  const result = await db.prepare("UPDATE recipe_chat_messages SET status = 'complete' WHERE id = ? AND conversation_id = ? AND role = 'user' AND status = 'running'").bind(turnId, conversationId).run()
+  return Boolean(result.meta.changes)
+}
+
+export async function cancelRunningTurn(db: D1Database, conversationId: string, turnId: string): Promise<boolean> {
+  const result = await db.prepare("DELETE FROM recipe_chat_messages WHERE id = ? AND conversation_id = ? AND role = 'user' AND status = 'running'").bind(turnId, conversationId).run()
+  return Boolean(result.meta.changes)
 }
 
 export async function addProposal(db: D1Database, input: { conversationId: string; messageId: string; kind: RecipeChatProposalKind; summary: string; payload: Record<string, unknown> }): Promise<string> {

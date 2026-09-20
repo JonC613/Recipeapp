@@ -3,11 +3,11 @@ feature: recipe-chat-agent
 artifact: tests
 status: done
 owner: user
-version: 0.4
+version: 0.5
 created: 2026-09-03
-updated: 2026-09-19
-spec_version: 0.4
-plan_version: 0.4
+updated: 2026-09-20
+spec_version: 0.5
+plan_version: 0.5
 ---
 
 # Test Plan: Recipe Chat Agent
@@ -59,7 +59,7 @@ Use Worker tests with deterministic D1 fixtures and provider doubles for retriev
 | AC-11.1 | T-33, T-34 | Automated | Passing |
 | AC-11.2 | T-33 | Automated | Passing |
 | AC-12.1 | T-30 | Automated | Passing |
-| AC-12.2 | T-35 | Automated | Passing |
+| AC-12.2 | T-35, T-36 | Automated + production smoke | Passing |
 
 Every current-release acceptance criterion must appear exactly once in this table and map to at least one test or documented manual exception.
 
@@ -343,6 +343,7 @@ Offline completion requires the rubric, dataset, review-status gates, and report
 | 0.1 | 2026-09-03 | Initial draft | Derived from approved specification and plan | All |
 | 0.3 | 2026-09-05 | Revised traceability and retrieval/reliability/follow-up/evaluation checks | Owner approved plan v0.3; reconciles historical coverage claims | T-11–T-29, AC-04.1–AC-07.4, NFR-05–NFR-06 |
 | 0.4 | 2026-09-19 | Added persistent conversation, tool-use, streaming, and reviewed-action coverage | Agents SDK assistant amendment | T-30–T-35, AC-08.1–AC-12.2 |
+| 0.5 | 2026-09-20 | Added late-result cancellation race coverage and production recheck | Production smoke exposed incomplete Stop semantics | T-36, AC-12.2 |
 
 ## Version 0.4 evidence additions
 
@@ -375,3 +376,8 @@ Offline completion requires the rubric, dataset, review-status gates, and report
 - Covers: AC-12.2
 - Level: Component
 - Expected: Abort restores the Send control and no Apply call occurs.
+
+### T-36 — Reject a late result after durable cancellation
+- Covers: AC-12.2
+- Level: Worker integration and production smoke
+- Expected: A separate cancellation request removes the running turn; a delayed agent result cannot add an assistant message or proposal; reload shows no stopped exchange; resubmission creates exactly one completed exchange.

@@ -1,23 +1,26 @@
 import type { RecipeChatStreamEvent } from '../../src/domain/recipe-chat.js'
 import { jsonError, validationError } from '../http.js'
-import { addMessage, addProposal, createConversation, deleteConversation, getConversation, listConversations } from '../repositories/recipe-chat-conversations.js'
+import { addMessage, addProposal, cancelRunningTurn, completeRunningTurn, createConversation, deleteConversation, getConversation, listConversations } from '../repositories/recipe-chat-conversations.js'
 import { OpenAiRecipeAgent, validateRecipeAgentProposal, type RecipeAgentRunner } from '../services/ai/recipe-agent.js'
 import { applyRecipeChatProposal, cancelRecipeChatProposal } from '../services/recipe-chat-actions.js'
 
 type Dependencies = { runner?: RecipeAgentRunner }
 const encoder = new TextEncoder()
 const line = (event: RecipeChatStreamEvent) => encoder.encode(`${JSON.stringify(event)}\n`)
+const activeTurns = new Map<string, AbortController>()
 
-async function messageText(request: Request): Promise<string> {
+async function messageInput(request: Request): Promise<{ message: string; turnId: string }> {
   const declaredLength = Number(request.headers.get('content-length') ?? 0)
   if (declaredLength > 16_384) throw new Error('Recipe Chat request is too large.')
   const raw = await request.text()
   if (new TextEncoder().encode(raw).byteLength > 16_384) throw new Error('Recipe Chat request is too large.')
-  const body = JSON.parse(raw) as { message?: unknown }
+  const body = JSON.parse(raw) as { message?: unknown; turnId?: unknown }
   const message = typeof body.message === 'string' ? body.message.trim().replace(/\s+/g, ' ') : ''
+  const turnId = typeof body.turnId === 'string' && /^[0-9a-f-]{36}$/i.test(body.turnId) ? body.turnId : ''
   if (!message) throw new Error('Enter a recipe question.')
   if (message.length > 600) throw new Error('Keep your question to 600 characters or fewer.')
-  return message
+  if (!turnId) throw new Error('Recipe Chat turn identifier is invalid.')
+  return { message, turnId }
 }
 
 function streamTurn(request: Request, env: Env, conversationId: string, runner: RecipeAgentRunner): Response {
@@ -28,15 +31,20 @@ function streamTurn(request: Request, env: Env, conversationId: string, runner: 
       const forwardAbort = () => abort.abort()
       request.signal.addEventListener('abort', forwardAbort, { once: true })
       let conversationExists = false
+      let turnId = ''
       try {
-        const question = await messageText(request)
+        const input = await messageInput(request)
+        const question = input.message
+        turnId = input.turnId
         const conversation = await getConversation(env.DB, conversationId)
         if (!conversation) { controller.enqueue(line({ type: 'error', message: 'Conversation not found.', retryable: false })); return }
         conversationExists = true
-        await addMessage(env.DB, { conversationId, role: 'user', text: question })
+        activeTurns.set(turnId, abort)
+        await addMessage(env.DB, { id: turnId, conversationId, role: 'user', text: question, status: 'running' })
         controller.enqueue(line({ type: 'progress', message: 'Searching your recipes…' }))
         const history = conversation.messages.filter((message) => message.status === 'complete').slice(-12).map(({ role, text }) => ({ role, text }))
         const result = await runner.run(question, history, env.DB, abort.signal)
+        if (!(await completeRunningTurn(env.DB, conversationId, turnId))) throw new DOMException('Stopped', 'AbortError')
         const known = new Map<string, string>()
         if (result.recipeIds.length) {
           const placeholders = result.recipeIds.map(() => '?').join(',')
@@ -56,8 +64,8 @@ function streamTurn(request: Request, env: Env, conversationId: string, runner: 
         if (storedProposal) controller.enqueue(line({ type: 'proposal', proposal: storedProposal }))
         controller.enqueue(line({ type: 'completed', conversation: completed }))
       } catch (error) {
-        const interrupted = abort.signal.aborted
-        if (conversationExists) {
+        const interrupted = abort.signal.aborted || (error instanceof DOMException && error.name === 'AbortError')
+        if (conversationExists && !interrupted) {
           await addMessage(env.DB, {
             conversationId,
             role: 'assistant',
@@ -68,6 +76,7 @@ function streamTurn(request: Request, env: Env, conversationId: string, runner: 
         const invalid = error instanceof SyntaxError || String(error).includes('Enter a recipe') || String(error).includes('600 characters') || String(error).includes('too large')
         controller.enqueue(line({ type: 'error', message: interrupted ? 'Response stopped.' : invalid && error instanceof Error ? error.message : 'Recipe Chat is temporarily unavailable. Please try again.', retryable: !interrupted && !invalid }))
       } finally {
+        if (turnId) activeTurns.delete(turnId)
         clearTimeout(timeout)
         request.signal.removeEventListener('abort', forwardAbort)
         controller.close()
@@ -95,6 +104,12 @@ export async function handleRecipeAssistant(request: Request, env: Env, path: st
     }
     const messageMatch = path.match(/^\/api\/chat\/recipes\/([^/]+)\/messages$/)
     if (messageMatch && request.method === 'POST') return streamTurn(request, env, messageMatch[1], dependencies.runner ?? new OpenAiRecipeAgent(env.OPENAI_API_KEY, env.RECIPE_CHAT_MODEL ?? env.OPENAI_MODEL))
+    const cancelTurnMatch = path.match(/^\/api\/chat\/recipes\/([^/]+)\/turns\/([^/]+)\/cancel$/)
+    if (cancelTurnMatch && request.method === 'POST') {
+      const [, conversationId, turnId] = cancelTurnMatch
+      activeTurns.get(turnId)?.abort()
+      return new Response(null, { status: await cancelRunningTurn(env.DB, conversationId, turnId) ? 204 : 404 })
+    }
     const proposalMatch = path.match(/^\/api\/chat\/recipes\/([^/]+)\/proposals\/([^/]+)\/(apply|cancel)$/)
     if (proposalMatch && request.method === 'POST') {
       const [, conversationId, proposalId, action] = proposalMatch

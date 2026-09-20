@@ -4,7 +4,10 @@ import { handleRecipeAssistant } from '../../worker/routes/recipe-chat-assistant
 import type { RecipeAgentRunner } from '../../worker/services/ai/recipe-agent.js'
 
 const worker = exports.default as ExportedHandler<Env>
-const api = (path: string, method = 'GET', body?: unknown) => new Request(`https://recipeapp.test${path}`, { method, headers: body ? { 'content-type': 'application/json' } : undefined, body: body ? JSON.stringify(body) : undefined })
+const api = (path: string, method = 'GET', body?: unknown) => {
+  const value = body && typeof body === 'object' && 'message' in body && !('turnId' in body) ? { ...body, turnId: crypto.randomUUID() } : body
+  return new Request(`https://recipeapp.test${path}`, { method, headers: value ? { 'content-type': 'application/json' } : undefined, body: value ? JSON.stringify(value) : undefined })
+}
 
 async function createRecipe() {
   const response = await worker.fetch(api('/api/recipes', 'POST', { title: 'Garlic Shrimp', servings: 2, ingredients: [{ originalText: '1 lb shrimp', quantity: 1, unit: 'lb', ingredient: 'shrimp' }], instructions: [{ text: 'Cook gently.' }] }), env)
@@ -26,6 +29,26 @@ describe('Recipe Chat assistant API', () => {
     const saved = await handleRecipeAssistant(api(`/api/chat/recipes/${created.id}`), env, `/api/chat/recipes/${created.id}`).then((result) => result.json()) as { title: string; messages: unknown[] }
     expect(saved.title).toBe('Find shrimp recipes')
     expect(saved.messages).toHaveLength(2)
+  })
+
+  it('cancels a turn durably before a late agent result can be persisted', async () => {
+    let release!: () => void
+    let markStarted!: () => void
+    const gate = new Promise<void>((resolve) => { release = resolve })
+    const started = new Promise<void>((resolve) => { markStarted = resolve })
+    const runner: RecipeAgentRunner = { run: vi.fn(async () => { markStarted(); await gate; return { outcome: 'answer', answer: 'Late answer.', sourceKind: 'general', recipeIds: [] } }) }
+    const created = await handleRecipeAssistant(api('/api/chat/recipes', 'POST'), env, '/api/chat/recipes').then((response) => response.json()) as { id: string }
+    const turnId = crypto.randomUUID()
+    const messagePath = `/api/chat/recipes/${created.id}/messages`
+    const response = await handleRecipeAssistant(api(messagePath, 'POST', { message: 'Stop this turn', turnId }), env, messagePath, { runner })
+    await started
+    const cancelPath = `/api/chat/recipes/${created.id}/turns/${turnId}/cancel`
+    expect((await handleRecipeAssistant(api(cancelPath, 'POST'), env, cancelPath)).status).toBe(204)
+    release()
+    const streamed = await events(response)
+    expect(streamed).toContainEqual({ type: 'error', message: 'Response stopped.', retryable: false })
+    const saved = await handleRecipeAssistant(api(`/api/chat/recipes/${created.id}`), env, `/api/chat/recipes/${created.id}`).then((result) => result.json()) as { messages: unknown[] }
+    expect(saved.messages).toHaveLength(0)
   })
 
   it('creates a variation only after Apply and makes Apply idempotent', async () => {

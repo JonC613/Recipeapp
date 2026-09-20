@@ -57,8 +57,9 @@ service boundaries.
 - Cooks can open a read-only Cooking Mode from a saved recipe, follow one ordered instruction at a time,
   move locally between bounded steps, keep ingredients visible, and return to the normal detail view.
 - The owner can keep and revisit Recipe Chat conversations, receive streamed answers grounded in saved recipes
-  and meal plans, follow recipe citations, and stop a turn. Recipe variations, meal-plan assignments, and
-  grocery changes appear as previews and run only after explicit Apply; Cancel leaves application data intact.
+  and meal plans, follow recipe citations, and stop a turn. Stop durably cancels the server-side turn so a late
+  agent result cannot persist an answer or proposal. Recipe variations, meal-plan assignments, and grocery
+  changes appear as previews and run only after explicit Apply; Cancel leaves application data intact.
 - Cooks can plan one saved dinner per day in navigable Sunday-based weeks, then open a planned recipe's
   normal detail or Cooking Mode view. Each week persists independently in D1.
 - Cooks can explicitly generate or update a persistent grocery checklist from planned ingredients. The
