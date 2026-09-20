@@ -31,6 +31,28 @@ describe('Recipe Chat assistant API', () => {
     expect(saved.messages).toHaveLength(2)
   })
 
+  it('drops an unknown citation while preserving an answer with known citations', async () => {
+    const recipe = await createRecipe()
+    const runner: RecipeAgentRunner = { run: vi.fn(async () => ({ outcome: 'answer', answer: 'Garlic Shrimp is the best match.', sourceKind: 'library', recipeIds: [recipe.id, 'mistyped-recipe-id'] })) }
+    const created = await handleRecipeAssistant(api('/api/chat/recipes', 'POST'), env, '/api/chat/recipes').then((response) => response.json()) as { id: string }
+    const path = `/api/chat/recipes/${created.id}/messages`
+    const streamed = await events(await handleRecipeAssistant(api(path, 'POST', { message: 'Compare shrimp recipes' }), env, path, { runner }))
+    expect(streamed.filter((event) => event.type === 'recipe_reference')).toEqual([
+      { type: 'recipe_reference', citation: { recipeId: recipe.id, title: recipe.title } },
+    ])
+    expect(streamed.at(-1)?.type).toBe('completed')
+  })
+
+  it('fails safely when every returned citation is unknown', async () => {
+    const runner: RecipeAgentRunner = { run: vi.fn(async () => ({ outcome: 'answer', answer: 'Invented library answer.', sourceKind: 'library', recipeIds: ['mistyped-recipe-id'] })) }
+    const created = await handleRecipeAssistant(api('/api/chat/recipes', 'POST'), env, '/api/chat/recipes').then((response) => response.json()) as { id: string }
+    const path = `/api/chat/recipes/${created.id}/messages`
+    const streamed = await events(await handleRecipeAssistant(api(path, 'POST', { message: 'Find a recipe' }), env, path, { runner }))
+    expect(streamed.at(-1)).toMatchObject({ type: 'error', retryable: true })
+    const saved = await handleRecipeAssistant(api(`/api/chat/recipes/${created.id}`), env, `/api/chat/recipes/${created.id}`).then((response) => response.json()) as { messages: Array<{ status: string }> }
+    expect(saved.messages.at(-1)?.status).toBe('failed')
+  })
+
   it('cancels a turn durably before a late agent result can be persisted', async () => {
     let release!: () => void
     let markStarted!: () => void

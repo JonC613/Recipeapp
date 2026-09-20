@@ -3,10 +3,10 @@ feature: recipe-chat-agent
 artifact: plan
 status: done
 owner: user
-version: 0.5
+version: 0.6
 created: 2026-09-03
 updated: 2026-09-20
-spec_version: 0.5
+spec_version: 0.6
 ---
 
 # Implementation Plan: Recipe Chat Agent
@@ -209,6 +209,7 @@ The Worker accepts a normalized bounded question. It returns `no_match` with no 
 | 0.3 | 2026-09-05 | Proposed ranked retrieval, recovery, session follow-ups, and offline evaluation implementation | Derived from owner-approved spec v0.3; baseline retained for provenance | R-06–R-10, US-04–US-07, A1-T1–A4-T2 |
 | 0.4 | 2026-09-19 | Agents SDK, persisted conversations, and reviewed actions | Owner approved the everyday assistant expansion | P3-T1–P5-T2 |
 | 0.5 | 2026-09-20 | Durable turn cancellation | Production smoke proved request abort alone did not stop Worker persistence | P6-T1 |
+| 0.6 | 2026-09-20 | Tolerate partial citation drift | A valid multi-tool answer failed because one of several cited IDs was mistyped | P7-T1 |
 
 ## Version 0.4 implementation
 
@@ -247,3 +248,8 @@ The Worker accepts a normalized bounded question. It returns `no_match` with no 
   - Depends on: P3-T2, P5-T1
   - Work: Assign each streamed turn a client-generated identifier, expose an idempotent cancellation route, remove the D1 running turn, and reject late agent results before assistant messages or proposals are persisted.
   - Verify: Worker race coverage proves a cancelled turn remains absent after a delayed runner resolves; component coverage proves Stop calls cancellation and restores the composer; repeat the authenticated production smoke.
+- [x] **P7-T1 — Preserve answers with a valid citation subset**
+  - Covers: AC-09.1
+  - Depends on: P3-T2
+  - Work: Filter provider citation IDs through the server-owned recipe lookup and continue only when at least one requested citation remains valid.
+  - Verify: Worker coverage proves a mixed known/unknown citation list completes with only the known citation; production smoke confirms the previously failing comparison completes.

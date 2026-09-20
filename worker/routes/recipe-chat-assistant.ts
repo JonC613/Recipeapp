@@ -51,13 +51,14 @@ function streamTurn(request: Request, env: Env, conversationId: string, runner: 
           const { results } = await env.DB.prepare(`SELECT id, title FROM recipes WHERE id IN (${placeholders})`).bind(...result.recipeIds).all<{ id: string; title: string }>()
           for (const row of results) known.set(row.id, row.title)
         }
-        if (known.size !== result.recipeIds.length) throw new Error('UNKNOWN_CITATION')
+        const recipeIds = result.recipeIds.filter((recipeId) => known.has(recipeId))
+        if (result.recipeIds.length > 0 && recipeIds.length === 0) throw new Error('UNKNOWN_CITATION')
         const answer = result.answer || 'Could you clarify what you would like to do?'
-        const messageId = await addMessage(env.DB, { conversationId, role: 'assistant', text: answer, sourceKind: result.sourceKind, recipeIds: result.recipeIds })
+        const messageId = await addMessage(env.DB, { conversationId, role: 'assistant', text: answer, sourceKind: result.sourceKind, recipeIds })
         const validatedProposal = await validateRecipeAgentProposal(env.DB, result.proposal)
         if (validatedProposal) await addProposal(env.DB, { conversationId, messageId, kind: validatedProposal.kind, summary: validatedProposal.summary, payload: validatedProposal.payload })
         for (let offset = 0; offset < answer.length; offset += 80) controller.enqueue(line({ type: 'text_delta', delta: answer.slice(offset, offset + 80) }))
-        for (const recipeId of result.recipeIds) controller.enqueue(line({ type: 'recipe_reference', citation: { recipeId, title: known.get(recipeId)! } }))
+        for (const recipeId of recipeIds) controller.enqueue(line({ type: 'recipe_reference', citation: { recipeId, title: known.get(recipeId)! } }))
         const completed = await getConversation(env.DB, conversationId)
         if (!completed) throw new Error('CONVERSATION_MISSING')
         const storedProposal = completed.messages.at(-1)?.proposal

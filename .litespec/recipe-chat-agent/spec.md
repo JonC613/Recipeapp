@@ -3,7 +3,7 @@ feature: recipe-chat-agent
 artifact: spec
 status: done
 owner: user
-version: 0.5
+version: 0.6
 created: 2026-09-03
 updated: 2026-09-20
 ---
@@ -246,7 +246,7 @@ The read-only release remains the historical baseline. The current release addit
 **Story:** As the owner, I want my library to remain the foundation while receiving useful cooking guidance, so that answers are both personal and practical.
 
 **Acceptance criteria:**
-- **AC-09.1:** Library claims use tool-retrieved recipes and server-validated citations.
+- **AC-09.1:** Library claims use tool-retrieved recipes and server-validated citations. A response containing at least one known citation remains usable after unknown citation IDs are discarded; a response whose cited IDs are all unknown fails safely.
 - **AC-09.2:** General or mixed cooking guidance is visibly labeled and cannot claim to be saved-recipe data.
 
 ### US-10 — Preview and save a recipe variation

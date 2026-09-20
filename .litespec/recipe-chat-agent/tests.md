@@ -3,11 +3,11 @@ feature: recipe-chat-agent
 artifact: tests
 status: done
 owner: user
-version: 0.5
+version: 0.6
 created: 2026-09-03
 updated: 2026-09-20
-spec_version: 0.5
-plan_version: 0.5
+spec_version: 0.6
+plan_version: 0.6
 ---
 
 # Test Plan: Recipe Chat Agent
@@ -52,7 +52,7 @@ Use Worker tests with deterministic D1 fixtures and provider doubles for retriev
 | AC-07.4 | T-28 | Automated + manual review | Planned |
 | AC-08.1 | T-30 | Automated | Passing |
 | AC-08.2 | T-30 | Automated | Passing |
-| AC-09.1 | T-31 | Automated | Passing |
+| AC-09.1 | T-31, T-37 | Automated + production smoke | Passing |
 | AC-09.2 | T-31 | Automated | Passing |
 | AC-10.1 | T-32, T-34 | Automated | Passing |
 | AC-10.2 | T-32 | Automated | Passing |
@@ -344,6 +344,7 @@ Offline completion requires the rubric, dataset, review-status gates, and report
 | 0.3 | 2026-09-05 | Revised traceability and retrieval/reliability/follow-up/evaluation checks | Owner approved plan v0.3; reconciles historical coverage claims | T-11–T-29, AC-04.1–AC-07.4, NFR-05–NFR-06 |
 | 0.4 | 2026-09-19 | Added persistent conversation, tool-use, streaming, and reviewed-action coverage | Agents SDK assistant amendment | T-30–T-35, AC-08.1–AC-12.2 |
 | 0.5 | 2026-09-20 | Added late-result cancellation race coverage and production recheck | Production smoke exposed incomplete Stop semantics | T-36, AC-12.2 |
+| 0.6 | 2026-09-20 | Added partial citation-drift recovery coverage | Production comparison exposed one mistyped ID among otherwise valid citations | T-37, AC-09.1 |
 
 ## Version 0.4 evidence additions
 
@@ -381,3 +382,8 @@ Offline completion requires the rubric, dataset, review-status gates, and report
 - Covers: AC-12.2
 - Level: Worker integration and production smoke
 - Expected: A separate cancellation request removes the running turn; a delayed agent result cannot add an assistant message or proposal; reload shows no stopped exchange; resubmission creates exactly one completed exchange.
+
+### T-37 — Preserve a response with a valid citation subset
+- Covers: AC-09.1
+- Level: Worker integration and production smoke
+- Expected: An answer containing known and unknown recipe IDs completes with links only for the known IDs; an all-unknown citation set continues to fail safely.

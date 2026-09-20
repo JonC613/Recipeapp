@@ -119,3 +119,8 @@
   route. Stop now removes the running D1 turn and prevents late agent results from persisting an answer or
   proposal. Unit, component, Worker, integration, E2E, structural, and authenticated production smoke
   validation passed; reload showed no stopped exchange, while a later normal query persisted once.
+- **Recipe Chat partial-citation recovery deployed:** Worker release
+  `9eaf32a8-455b-4cf7-a78c-62a8bf13ba2c` preserves an otherwise valid answer when one or more provider
+  citation IDs cannot be resolved, emits links only for the D1-verified subset, and still fails safely when
+  every citation is unknown. The full 94-test Worker suite, build, typecheck, structural validation, and the
+  authenticated production reproduction of the previously failing comparison passed.
