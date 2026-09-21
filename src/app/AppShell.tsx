@@ -15,6 +15,7 @@ export function AppShell() {
           <NavLink to="/" end>Library</NavLink>
           <NavLink to="/meal-plan">Meal plan</NavLink>
           <NavLink to="/recipes/chat">Recipe Chat</NavLink>
+          <NavLink to="/beta/discover">Beta</NavLink>
           <NavLink to="/recipes/import">Import</NavLink>
           <NavLink to="/admin/usage">Usage</NavLink>
         </nav>

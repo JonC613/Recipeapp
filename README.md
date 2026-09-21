@@ -26,6 +26,11 @@ pages, and previews recipe variations, meal-plan changes, or grocery-list change
 owner-facing **Usage & Costs** page shows application activity and, only when separately configured,
 safe Cloudflare and OpenAI reporting summaries.
 
+The **Beta** tab searches only owner-approved compatible recipe sites. A selected result is previewed
+without persistence and then enters the normal URL review-and-save flow. The owner can also run a bounded
+technical compatibility check for another public HTTPS site; a passing site remains pending until the
+owner explicitly adds it. This check does not determine copyright or terms permission.
+
 Text, OCR, image extraction, and Recipe Chat use Worker-only OpenAI credentials. Local automated tests
 use controlled doubles and make no OpenAI requests. Keep `OPENAI_API_KEY` only in an ignored local `.env`
 variant. Recipe Chat uses `RECIPE_CHAT_MODEL=gpt-5.6-luna`; extraction and OCR retain their separately

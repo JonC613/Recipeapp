@@ -1,7 +1,7 @@
 ---
 type: Software Repository
 title: Recipeapp
-description: Personal, mobile-first Recipe Library application with manual, URL, text, PDF, image/screenshot, and TheMealDB imports, explicit review and saving, traditional saved-recipe search, and an owner-protected Cloudflare deployment.
+description: Personal, mobile-first Recipe Library application with reviewed imports, saved-recipe search, owner-approved recipe-site discovery, meal planning, and an owner-protected Cloudflare deployment.
 status: stable
 generated: {"by":"adaptive-sdd/0.3.0","at":"2026-09-03T23:10:00Z"}
 verified: [{"by":"human:owner","at":"2026-08-28T03:16:22Z"},{"by":"human:owner","at":"2026-08-29T08:16:46Z"},{"by":"human:owner","at":"2026-08-30T01:47:45Z"},{"by":"human:owner","at":"2026-08-30T05:51:22Z"}]
@@ -50,6 +50,9 @@ service boundaries.
 - Cooks can browse TheMealDB by category or area, search by name, and preview a normalized recipe without
   creating a record. An explicit import creates an immutable `mealdb` import snapshot; review and save
   remain required before one approved Recipeapp recipe is added.
+- The owner can search enabled approved recipe sites from the Beta tab, preview a deterministic Recipe
+  JSON-LD draft without persistence, and send one URL through existing review/save. Technical validation
+  stores a candidate as pending; only explicit approval enables it for search.
 - The application is deployed on an owner-protected custom Cloudflare hostname. Cloudflare Access protects
   the exact application hostname; Worker-only secrets, production D1, and private R2 remain server-side.
 - The owner can open a protected Usage & Costs dashboard that summarizes Recipeapp activity, Cloudflare
@@ -86,3 +89,5 @@ service boundaries.
   and make no paid provider calls.
 - TheMealDB integration is for the personal MVP only. A future public or multi-user launch needs a fresh
   provider-access and terms review; its approved browse and import capability is deployed.
+- Beta site validation supports public HTTPS WordPress REST search only. Robots compatibility is a technical
+  signal, not a copyright or terms decision; crawling, automatic approval, and general web search are absent.

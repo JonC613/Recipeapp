@@ -1,7 +1,7 @@
 ---
 type: Software Architecture
 title: Recipeapp Recipe Library Architecture
-description: Current single-repository browser, Worker, D1 import persistence, owner-protected Cloudflare deployment, private R2 source storage, bounded AI text/OCR/vision, and Worker-owned TheMealDB browse/import architecture.
+description: Current browser, Worker, D1/R2, owner-protected Cloudflare, reviewed import, approved-site discovery, meal planning, graphics, and recipe-chat architecture.
 status: stable
 generated: {"by":"adaptive-sdd/0.3.0","at":"2026-09-03T23:10:00Z"}
 verified: [{"by":"human:owner","at":"2026-08-28T03:16:22Z"},{"by":"human:owner","at":"2026-08-29T08:16:46Z"},{"by":"human:owner","at":"2026-08-30T01:47:45Z"},{"by":"human:owner","at":"2026-08-30T05:51:22Z"}]
@@ -69,6 +69,10 @@ sdd: {"profile_version":1,"assumptions":[]}
   bounded application DTOs and creates no D1 state. `POST /api/import/mealdb` is the only persistent
   provider action: it stores an immutable normalized `mealdb` import snapshot and opens existing review.
   Approval saves the canonical TheMealDB URL through the pre-existing recipe `url` source shape.
+- `/beta/discover` uses D1-backed pending/approved site profiles. Validation checks a public HTTPS origin,
+  bounded robots rules, WordPress REST search, exact-origin results, and up to three Recipe JSON-LD samples. Passing
+  candidates stay disabled until explicit approval. Search concurrently queries up to eight approved sites;
+  preview is transient and selected URLs enter the existing URL import review flow.
 - The public contract includes `GET /api/health` and `GET/POST/PUT/DELETE /api/recipes`, with
   `PATCH /api/recipes/:id/favorite`, `POST /api/import/url`, `POST /api/import/text`,
   `POST /api/import/pdf`, `POST /api/import/image`, `GET /api/import/:importId`,
@@ -80,6 +84,8 @@ sdd: {"profile_version":1,"assumptions":[]}
 - The deployed Feature 009 implementation adds `GET /api/mealdb/categories`, `GET /api/mealdb/areas`,
   `GET /api/mealdb/recipes`, `GET /api/mealdb/search`, `GET /api/mealdb/recipes/:providerId`, and
   `POST /api/import/mealdb`.
+- Beta discovery adds site list/validate/approve routes plus bounded search and approved-URL preview under
+  `/api/beta/discovery`; these routes never create a saved recipe and only `/api/import/url` persists a selection.
 - `/admin/usage` reads the owner-facing `GET /api/admin/usage` contract, which aggregates application
   counts, Cloudflare usage, OpenAI organization usage/costs, and optional budget state without returning
   provider credentials or raw responses.
@@ -130,6 +136,8 @@ sdd: {"profile_version":1,"assumptions":[]}
 - TheMealDB provider client makes server-side official API requests only, does not expose raw upstream
   payloads or provider credentials, makes no AI call, and never auto-saves. Its `recipe_imports` history
   uses `mealdb` while approved recipes retain the existing URL-source persistence shape.
+- Discovery supports the stored `wordpress_rest` adapter only, never crawls arbitrary pages, never
+  auto-approves a candidate, rejects off-origin results, and treats robots checks as technical signals only.
 - Grocery generation only reads planned recipes' ordered `original_text` lines, groups case-insensitive
   whitespace-normalized exact matches, and classifies items locally. It never sums quantities or silently
   refreshes an existing checklist; retained custom items and eligible checked state survive explicit updates.

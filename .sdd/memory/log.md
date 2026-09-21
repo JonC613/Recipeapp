@@ -124,3 +124,24 @@
   citation IDs cannot be resolved, emits links only for the D1-verified subset, and still fails safely when
   every citation is unknown. The full 94-test Worker suite, build, typecheck, structural validation, and the
   authenticated production reproduction of the previously failing comparison passed.
+
+## 2026-09-21
+
+- **Beta Recipe Discovery implementation:** Added owner-approved recipe-site profiles, a bounded public-HTTPS
+  WordPress REST compatibility validator, explicit pending-to-approved promotion, concurrent approved-site
+  search, transient Recipe JSON-LD preview, and reuse of URL import review/save. The selected initial source
+  is seeded as an approved generic site. Source: `.litespec/beta-recipe-discovery/` and
+  `migrations/0015_beta_recipe_discovery.sql`.
+- **Beta Recipe Discovery deployed:** Applied remote migration
+  `0015_beta_recipe_discovery.sql` and deployed Worker release
+  `a6a4d142-b05c-446a-bd06-a163ec00b1ce` at 100% traffic on
+  `recipes.merkavaenterprises.com`. Remote verification found no pending migrations and confirmed the seeded
+  discovery source is approved and enabled. Unauthenticated page and health checks correctly redirect to
+  Cloudflare Access; the available Edge profile was not authenticated, so the owner-only UI smoke remains
+  intentionally unperformed rather than automating account credentials or a login code.
+- **Beta Recipe Discovery validation hardening:** The compatibility checker now samples up to three bounded,
+  same-origin WordPress results instead of rejecting a site because its first result is a non-recipe roundup.
+  It accepts only after one result yields a usable Recipe JSON-LD draft; all-unusable samples still fail safely.
+  Worker release `9e23cd73-81e3-421a-8e14-ecdb24df2e96` is deployed at 100% traffic. Typecheck, lint,
+  33 client tests, 102 Worker tests, 19 integration tests, and 96 cross-viewport E2E tests passed. Source:
+  `.litespec/beta-recipe-discovery/` v1.1 and Worker regression coverage.
