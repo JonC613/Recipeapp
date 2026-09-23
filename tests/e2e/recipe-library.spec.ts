@@ -15,6 +15,28 @@ test('creates a manual recipe and reads it from the library', async ({ page }) =
   await expect(page.getByText('Toss and serve.')).toBeVisible()
 })
 
+test('changes servings on a saved recipe and carries the amounts into Cooking Mode', async ({ page }) => {
+  await page.goto('/recipes/new')
+  await page.getByRole('textbox', { name: 'Recipe title' }).fill('Scalable Soup')
+  await page.getByRole('spinbutton', { name: 'Servings' }).fill('4')
+  await page.getByRole('textbox', { name: /ingredients/i }).fill('1 1/2 cups broth\n2 carrots\nSalt to taste')
+  await page.getByRole('textbox', { name: /instructions/i }).fill('Simmer until tender.')
+  await page.getByRole('button', { name: 'Save recipe' }).click()
+
+  await expect(page.getByRole('heading', { name: 'Scalable Soup' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Cook', exact: true })).toBeVisible()
+  await page.getByRole('spinbutton', { name: 'Servings' }).fill('8')
+  await expect(page.getByText('3 cups broth')).toBeVisible()
+  await expect(page.getByText('4 carrots')).toBeVisible()
+  await expect(page.getByText('Salt to taste')).toBeVisible()
+  await page.getByRole('link', { name: 'Cook', exact: true }).click()
+  await expect(page.getByText('3 cups broth')).toBeVisible()
+  await page.getByRole('link', { name: 'Exit cooking mode' }).click()
+  await expect(page.getByText('3 cups broth')).toBeVisible()
+  await page.getByRole('button', { name: 'Reset' }).click()
+  await expect(page.getByText('1 1/2 cups broth')).toBeVisible()
+})
+
 test('records a completed cook with a rating and note', async ({ page }) => {
   await page.goto('/recipes/new')
   await page.getByRole('textbox', { name: 'Recipe title' }).fill('History Pasta')

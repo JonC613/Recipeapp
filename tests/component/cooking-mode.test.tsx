@@ -36,3 +36,22 @@ test('shows an honest empty state when a recipe has no instructions', async () =
   await expect.element(screen.getByRole('button', { name: 'Next step' })).not.toBeInTheDocument()
   await expect.element(screen.getByRole('link', { name: 'Edit recipe' })).toHaveAttribute('href', '/recipes/pasta/edit')
 })
+
+test('adjusts ingredient amounts for chosen servings while leaving instructions intact', async () => {
+  services.getRecipe.mockResolvedValue({ ...recipe, servings: 4, ingredients: [
+    { id: 'i1', position: 1, originalText: '1 1/2 cups pasta' },
+    { id: 'i2', position: 2, originalText: '2-3 cloves garlic' },
+    { id: 'i3', position: 3, originalText: 'Salt to taste' },
+  ] })
+  const router = createMemoryRouter([{ path: '/recipes/:recipeId/cook', element: <CookingModePage /> }], { initialEntries: ['/recipes/pasta/cook'] })
+  const screen = await render(<RouterProvider router={router} />)
+
+  await screen.getByRole('spinbutton', { name: 'Servings' }).fill('2')
+  await expect.element(screen.getByText('3/4 cups pasta')).toBeVisible()
+  await expect.element(screen.getByText('1-1 1/2 cloves garlic')).toBeVisible()
+  await expect.element(screen.getByText('Salt to taste')).toBeVisible()
+  await expect.element(screen.getByText('Boil the pasta.')).toBeVisible()
+  await expect.element(screen.getByRole('link', { name: 'Exit cooking mode' })).toHaveAttribute('href', '/recipes/pasta?servings=2')
+  await screen.getByRole('button', { name: 'Reset' }).click()
+  await expect.element(screen.getByText('1 1/2 cups pasta')).toBeVisible()
+})
