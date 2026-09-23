@@ -1,6 +1,7 @@
 import { Agent, OpenAIProvider, Runner, tool } from '@openai/agents'
 import { z } from 'zod'
 import type { RecipeChatProposalKind, RecipeChatSourceKind } from '../../../src/domain/recipe-chat.js'
+import { normalizeManualRecipe } from '../../../src/domain/recipe/validation.js'
 import { getMealPlanWeek } from '../../repositories/meal-plans.js'
 import { getRecipe, listRecipeChatContext } from '../../repositories/recipes.js'
 
@@ -41,7 +42,7 @@ const AgentOutput = z.object({
   answer: z.string().max(4000),
   sourceKind: z.enum(['library', 'general', 'mixed']),
   recipeIds: z.array(z.string().max(128)).max(12),
-  proposalKind: z.enum(['recipe_variation', 'meal_plan', 'grocery_update']).nullable(),
+  proposalKind: z.enum(['recipe_variation', 'generated_recipe', 'meal_plan', 'grocery_update']).nullable(),
   proposalSummary: z.string().max(500).nullable(),
   proposalPayloadJson: z.string().max(16000).nullable(),
 })
@@ -74,6 +75,10 @@ export async function validateRecipeAgentProposal(db: D1Database, proposal: Reci
     if (!source) return undefined
     return { ...proposal, payload: { ...proposal.payload, sourceRecipeId: source.id, sourceUpdatedAt: source.updatedAt } }
   }
+  if (proposal.kind === 'generated_recipe') {
+    try { return { ...proposal, payload: { recipe: normalizeManualRecipe(proposal.payload.recipe as never) } } }
+    catch { return undefined }
+  }
   const weekStart = typeof proposal.payload.weekStart === 'string' ? proposal.payload.weekStart : ''
   let week
   try { week = await getMealPlanWeek(db, weekStart) } catch { return undefined }
@@ -97,6 +102,7 @@ export class OpenAiRecipeAgent implements RecipeAgentRunner {
 Use tools before stating what is in the saved library. You may also provide ordinary cooking knowledge, but label it through sourceKind=general or mixed and never imply it came from saved recipes.
 For a requested change, produce a preview only. Never claim to have saved anything. proposalPayloadJson must be a JSON object string.
 recipe_variation payload: {sourceRecipeId, sourceUpdatedAt, recipe:{title,description,servings,prepMinutes,cookMinutes,totalMinutes,cuisine,category,tags,notes,ingredients:[{originalText,quantity,quantityText,unit,ingredient,preparation,optional}],instructions:[{text}]}}.
+generated_recipe payload: {recipe:{title,description,servings,prepMinutes,cookMinutes,totalMinutes,cuisine,category,tags,notes,ingredients:[{originalText,quantity,quantityText,unit,ingredient,preparation,optional}],instructions:[{text}]}}. Use it whenever you provide one complete original recipe because no saved recipe fits; do not include a sourceRecipeId.
 meal_plan payload: {weekStart,dayIndex,recipeId,expectedRevision}. grocery_update payload: {weekStart,excludedItems,expectedRevision}.
 Be decisive and useful on the first response. Search saved recipes first, retry with broader food terms when a themed or occasion search has no exact match, then choose the best fit and show it immediately. When no saved recipe fits, give one complete original recipe using general cooking knowledge. A recipe answer must include a title, yield, ingredients, and numbered steps in the answer itself; never tell the user to inspect a payload.
 Do not ask about recipe IDs, cuisine, servings, preferences, or allergies before answering. Use reasonable defaults (4 servings, no stated allergies) and briefly state assumptions. Ask at most one short follow-up only when proceeding would create a meaningful safety risk. For dates, use currentDate and currentTimeZone from the input; interpret “today” and “tomorrow” directly.

@@ -3,9 +3,9 @@ feature: recipe-chat-agent
 artifact: spec
 status: done
 owner: user
-version: 0.6
+version: 0.7
 created: 2026-09-03
-updated: 2026-09-20
+updated: 2026-09-22
 ---
 
 # Specification: Recipe Chat Agent
@@ -221,6 +221,26 @@ The React/Vite SPA uses React Router routes and typed `src/services` wrappers. T
 | 0.3 | 2026-09-05 | Approved scope with offline model-comparison preparation | Owner approved specification with model-evaluation addition; paid runs and model changes remain separate gates | R-10, US-07, AC-07.1–AC-07.4 |
 | 0.4 | 2026-09-19 | Upgrade to a persistent, tool-using everyday recipe assistant | Owner approved Agents SDK chat, variations, meal planning, groceries, and Apply/Cancel previews | R-11–R-16, US-08–US-12 |
 | 0.5 | 2026-09-20 | Make Stop durable across Worker request lifetimes | Production smoke exposed late-answer persistence after browser abort | AC-12.2 |
+| 0.7 | 2026-09-22 | Add explicit saving for generated recipe answers | Owner needs to retain a complete recipe when no saved match exists | US-13, AC-13.1–AC-13.4 |
+
+## Version 0.7 amendment — Save generated recipes
+
+### US-13 — Save a generated recipe deliberately
+
+**Story:** As the owner, I want to save a complete recipe that Recipe Chat generates after no saved recipe matches, so that useful new recipes become part of my library.
+**Rationale:** A complete chat recipe is otherwise stranded in conversation history and must be manually re-entered to retain it.
+
+**Acceptance criteria:**
+
+- **AC-13.1:** When Recipe Chat returns a complete original recipe, it can return a generated-recipe preview containing only a normalized recipe draft and no invented saved-recipe reference.
+- **AC-13.2:** The chat shows the complete preview with a clearly labelled Save recipe action; no recipe is created before that action.
+- **AC-13.3:** Save recipe creates exactly one normal manual-source library recipe, records the proposal as applied, and a repeated request cannot create a duplicate.
+- **AC-13.4:** Invalid generated drafts are not offered as saveable previews, and Cancel leaves the library unchanged.
+
+**Edge cases:**
+
+- General cooking guidance without a complete valid recipe has no Save recipe action.
+- Existing recipe variations retain their source ancestry and Apply wording.
 
 ## Version 0.4 amendment — Agents SDK recipe assistant
 

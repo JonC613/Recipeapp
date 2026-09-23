@@ -45,6 +45,19 @@ test('renders an explicit proposal preview and applies it', async () => {
   await expect.element(screen.getByText('Applied')).toBeVisible()
 })
 
+test('renders a generated recipe preview with an explicit save action', async () => {
+  const proposal = { id: 'p1', kind: 'generated_recipe' as const, summary: 'Save Classic Egg Salad', status: 'pending' as const, preview: { recipe: { title: 'Classic Egg Salad', servings: 4, ingredients: [{ originalText: '8 large eggs' }], instructions: [{ text: 'Cook and peel the eggs.' }] } } }
+  const withProposal: RecipeChatConversation = { ...empty, messages: [{ id: 'a1', role: 'assistant', text: 'No saved recipe matched, so here is one.', sourceKind: 'general', citations: [], status: 'complete', proposal, createdAt: empty.createdAt }] }
+  service.listRecipeChatConversations.mockResolvedValue([{ id: empty.id, title: empty.title, createdAt: empty.createdAt, updatedAt: empty.updatedAt }])
+  service.getRecipeChatConversation.mockResolvedValue(withProposal)
+  service.resolveRecipeChatProposal.mockResolvedValue({ ...withProposal, messages: [{ ...withProposal.messages[0], proposal: { ...proposal, status: 'applied' } }] })
+  const screen = await render(<MemoryRouter><RecipeChatPage /></MemoryRouter>)
+  await expect.element(screen.getByRole('heading', { name: 'Classic Egg Salad' })).toBeVisible()
+  await screen.getByRole('button', { name: 'Save recipe' }).click()
+  await expect.element(screen.getByText('Saved to your recipe library')).toBeVisible()
+  expect(service.resolveRecipeChatProposal).toHaveBeenCalledWith(empty.id, proposal.id, 'apply')
+})
+
 test('stops an in-flight streamed turn', async () => {
   service.cancelRecipeChatTurn.mockResolvedValue(undefined)
   service.streamRecipeChatMessage.mockImplementation((_id: string, _turnId: string, _message: string, onEvent: (event: unknown) => void, signal: AbortSignal) => new Promise((_resolve, reject) => { onEvent({ type: 'progress', message: 'Searching your recipes…' }); signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError'))) }))

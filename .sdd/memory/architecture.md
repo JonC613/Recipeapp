@@ -19,7 +19,7 @@ sdd: {"profile_version":1,"assumptions":[]}
   reporting credentials remain Worker secrets and each provider can fail independently.
 - Recipe Chat is a separate owner-facing React route backed by persistent D1 conversations. A Worker-owned
   OpenAI Agents SDK runner exposes bounded recipe-search, recipe-read, and meal-plan-read tools. Proposed
-  recipe variations, meal-plan assignments, and grocery changes remain inert until explicit approval. Each
+  recipe variations, generated recipes, meal-plan assignments, and grocery changes remain inert until explicit approval. Each
   streamed turn has a client-generated ID and a running D1 row; the cancellation route removes that row, and
   late runner results must atomically confirm it still exists before persisting an answer or proposal. Returned
   recipe citations are resolved through D1; unknown IDs are omitted when a valid subset remains, while an
@@ -91,7 +91,8 @@ sdd: {"profile_version":1,"assumptions":[]}
   provider credentials or raw responses.
 - `/recipes/chat` lists, creates, opens, and deletes conversations under `/api/chat/recipes`. Message turns
   stream typed NDJSON events, persist completed or interrupted outcomes, and validate cited recipe IDs before
-  returning Worker-derived references. Apply and cancel endpoints resolve persisted action proposals once.
+  returning Worker-derived references. Apply and cancel endpoints resolve persisted action proposals once;
+  generated-recipe proposals use an explicit Save recipe action and create a normal manual-source recipe.
 - `/recipes/:recipeId/cook` reuses the typed recipe-read service and keeps selected instruction position
   only in browser memory; it does not mutate the recipe or call a new Worker endpoint.
 - `POST /api/recipes/:id/graphic` explicitly generates one low-quality square recipe graphic through the
@@ -144,6 +145,7 @@ sdd: {"profile_version":1,"assumptions":[]}
 - Recipe Chat tools use bounded D1 projections and never expose credentials, raw provider output, private
   import/source data, or provider-controlled links. Data-changing proposals require a separate explicit Apply
   request, detect stale recipe or meal-plan state, and resolve once; recipe adaptations create a new recipe
-  linked to its source instead of overwriting the original. It has no vector search or web retrieval.
+  linked to its source instead of overwriting the original, while validated original recipes can save as new
+  manual-source recipes without inventing ancestry. It has no vector search or web retrieval.
 - Recipe Graphics are owner-confirmed, recipe-scoped, and generated at most once per recipe in the current
   release; failures do not create a stored graphic, and private R2 object keys remain Worker-only.

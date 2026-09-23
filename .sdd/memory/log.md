@@ -145,3 +145,18 @@
   Worker release `9e23cd73-81e3-421a-8e14-ecdb24df2e96` is deployed at 100% traffic. Typecheck, lint,
   33 client tests, 102 Worker tests, 19 integration tests, and 96 cross-viewport E2E tests passed. Source:
   `.litespec/beta-recipe-discovery/` v1.1 and Worker regression coverage.
+
+## 2026-09-22
+
+- **Recipe Chat generated-recipe saving implemented:** Complete original recipes now persist as validated
+  `generated_recipe` previews when no saved-library match exists. The owner can inspect the full preview and
+  explicitly Save recipe, which creates one manual-source library recipe; Cancel and repeated resolution do not
+  create duplicates. Worker release `31b5b6b1-8558-40fc-95da-7e1c4649b260` is deployed at 100% traffic.
+  Source: `.litespec/recipe-chat-agent/` v0.7 and
+  `migrations/0016_recipe_chat_generated_recipe_proposals.sql`.
+- **Serving adjustment deployed:** Recipe detail and Cooking Mode now scale readable ingredient quantities
+  against the saved serving count, carry the selected servings between views, and leave the stored recipe
+  unchanged. Worker release `cea3c4bc-aa5c-40af-9ad2-ccc62bbbed80` is deployed at 100% traffic on
+  `recipes.merkavaenterprises.com`. Focused component and end-to-end tests passed from an isolated release
+  checkout; Cloudflare confirmed the production D1 binding, retained secrets, no pending migrations, and
+  the Access redirect. The later, unrelated Recipe Chat Worker edit was excluded from this release.

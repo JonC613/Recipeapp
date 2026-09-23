@@ -7,7 +7,7 @@ import './recipe-chat.css'
 const MAX_QUESTION_LENGTH = 600
 
 function ProposalPreview({ proposal }: { proposal: RecipeChatProposal }) {
-  if (proposal.kind === 'recipe_variation') {
+  if (proposal.kind === 'recipe_variation' || proposal.kind === 'generated_recipe') {
     const recipe = proposal.preview.recipe && typeof proposal.preview.recipe === 'object' && !Array.isArray(proposal.preview.recipe) ? proposal.preview.recipe as Record<string, unknown> : undefined
     const ingredients = Array.isArray(recipe?.ingredients) ? recipe.ingredients : []
     const instructions = Array.isArray(recipe?.instructions) ? recipe.instructions : []
@@ -33,7 +33,7 @@ function ProposalCard({ conversationId, proposal, onChange }: { conversationId: 
     finally { setBusy(false) }
   }
   return <section className="recipe-chat__proposal" aria-label="Proposed change"><p className="card-kicker">Preview — no changes saved yet</p><strong>{proposal.summary}</strong><ProposalPreview proposal={proposal} />
-    {proposal.status === 'pending' ? <div className="recipe-chat__proposal-actions"><button disabled={busy} onClick={() => void resolve('apply')}>Apply</button><button disabled={busy} className="button-secondary" onClick={() => void resolve('cancel')}>Cancel</button></div> : <p className="recipe-chat__limit">{proposal.status === 'applied' ? 'Applied' : proposal.status === 'cancelled' ? 'Cancelled' : 'This preview is no longer current.'}</p>}
+    {proposal.status === 'pending' ? <div className="recipe-chat__proposal-actions"><button disabled={busy} onClick={() => void resolve('apply')}>{proposal.kind === 'generated_recipe' ? 'Save recipe' : 'Apply'}</button><button disabled={busy} className="button-secondary" onClick={() => void resolve('cancel')}>Cancel</button></div> : <p className="recipe-chat__limit">{proposal.status === 'applied' ? proposal.kind === 'generated_recipe' ? 'Saved to your recipe library' : 'Applied' : proposal.status === 'cancelled' ? 'Cancelled' : 'This preview is no longer current.'}</p>}
     {error && <p role="alert">{error}</p>}
   </section>
 }

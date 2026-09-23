@@ -62,7 +62,9 @@ service boundaries.
 - The owner can keep and revisit Recipe Chat conversations, receive streamed answers grounded in saved recipes
   and meal plans, follow recipe citations, and stop a turn. Stop durably cancels the server-side turn so a late
   agent result cannot persist an answer or proposal. Recipe variations, meal-plan assignments, and grocery
-  changes appear as previews and run only after explicit Apply; Cancel leaves application data intact.
+  changes appear as previews and run only after explicit Apply; complete original recipes generated when no
+  library match exists appear as validated previews and save to the library only after an explicit Save recipe
+  action. Cancel leaves application data intact.
 - Cooks can plan one saved dinner per day in navigable Sunday-based weeks, then open a planned recipe's
   normal detail or Cooking Mode view. Each week persists independently in D1.
 - Cooks can explicitly generate or update a persistent grocery checklist from planned ingredients. The

@@ -3,10 +3,10 @@ feature: recipe-chat-agent
 artifact: plan
 status: done
 owner: user
-version: 0.6
+version: 0.7
 created: 2026-09-03
-updated: 2026-09-20
-spec_version: 0.6
+updated: 2026-09-22
+spec_version: 0.7
 ---
 
 # Implementation Plan: Recipe Chat Agent
@@ -210,6 +210,29 @@ The Worker accepts a normalized bounded question. It returns `no_match` with no 
 | 0.4 | 2026-09-19 | Agents SDK, persisted conversations, and reviewed actions | Owner approved the everyday assistant expansion | P3-T1–P5-T2 |
 | 0.5 | 2026-09-20 | Durable turn cancellation | Production smoke proved request abort alone did not stop Worker persistence | P6-T1 |
 | 0.6 | 2026-09-20 | Tolerate partial citation drift | A valid multi-tool answer failed because one of several cited IDs was mistyped | P7-T1 |
+| 0.7 | 2026-09-22 | Add reviewed generated-recipe saving | Preserve complete general recipes without bypassing explicit save | P8-T1–P8-T3 |
+
+## Version 0.7 implementation
+
+### Technical approach
+
+Add `generated_recipe` as a fourth persisted proposal kind. The agent may emit it only with a complete recipe payload; Worker validation normalizes the draft before persistence. An additive migration rebuilds the constrained proposal table to accept the new kind. Apply creates one ordinary manual-source recipe and resolves the proposal, while the browser uses Save recipe wording only for this kind.
+
+- [x] **P8-T1 — Persist and validate generated-recipe previews**
+  - Covers: AC-13.1, AC-13.4
+  - Depends on: P3-T2
+  - Work: Extend the agent schema and proposal validator, rebuild the D1 proposal-kind constraint, and reject malformed drafts before persistence.
+  - Verify: Worker fixtures prove valid general recipes persist as previews and malformed payloads are omitted.
+- [x] **P8-T2 — Save generated recipes explicitly**
+  - Covers: AC-13.3, AC-13.4
+  - Depends on: P8-T1
+  - Work: Extend the existing proposal resolution transaction to create a normalized manual recipe only once; preserve variation behavior and proposal terminal states.
+  - Verify: Worker tests prove no pre-save write, one save, no duplicate on retry, and no write after Cancel.
+- [x] **P8-T3 — Present a mobile-safe save action**
+  - Covers: AC-13.2
+  - Depends on: P8-T1
+  - Work: Reuse the recipe preview card for generated recipes, label the action Save recipe, and show the applied save state without changing other proposal actions.
+  - Verify: Component and responsive Playwright tests cover preview, save, and overflow.
 
 ## Version 0.4 implementation
 

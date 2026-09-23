@@ -89,6 +89,20 @@ describe('Recipe Chat assistant API', () => {
     expect(after?.count).toBe(1)
   })
 
+  it('saves a validated generated recipe only after Save recipe', async () => {
+    const runner: RecipeAgentRunner = { run: vi.fn(async () => ({ outcome: 'answer', answer: 'Here is a classic egg salad.', sourceKind: 'general', recipeIds: [], proposal: { kind: 'generated_recipe', summary: 'Save Classic Egg Salad', payload: { recipe: { title: 'Classic Egg Salad', servings: 4, tags: ['lunch'], ingredients: [{ originalText: '8 large eggs', quantity: 8, ingredient: 'eggs' }], instructions: [{ text: 'Cook and peel the eggs.' }] } } } })) }
+    const conversation = await handleRecipeAssistant(api('/api/chat/recipes', 'POST'), env, '/api/chat/recipes').then((response) => response.json()) as { id: string }
+    const turn = await handleRecipeAssistant(api(`/api/chat/recipes/${conversation.id}/messages`, 'POST', { message: 'Give me egg salad' }), env, `/api/chat/recipes/${conversation.id}/messages`, { runner })
+    const completed = (await events(turn)).find((event) => event.type === 'completed')!.conversation as { messages: Array<{ proposal?: { id: string; kind: string } }> }
+    const proposalId = completed.messages.at(-1)!.proposal!.id
+    expect(completed.messages.at(-1)!.proposal?.kind).toBe('generated_recipe')
+    expect((await env.DB.prepare("SELECT COUNT(*) AS count FROM recipes WHERE title = 'Classic Egg Salad'").first<{ count: number }>())?.count).toBe(0)
+    const path = `/api/chat/recipes/${conversation.id}/proposals/${proposalId}/apply`
+    expect((await handleRecipeAssistant(api(path, 'POST'), env, path)).status).toBe(200)
+    expect((await env.DB.prepare("SELECT COUNT(*) AS count FROM recipes WHERE title = 'Classic Egg Salad'").first<{ count: number }>())?.count).toBe(1)
+    expect((await handleRecipeAssistant(api(path, 'POST'), env, path)).status).toBe(404)
+  })
+
   it('cancels a proposal without changing recipe data', async () => {
     const recipe = await createRecipe()
     const runner: RecipeAgentRunner = { run: vi.fn(async () => ({ outcome: 'answer', answer: 'Preview ready.', sourceKind: 'library', recipeIds: [recipe.id], proposal: { kind: 'recipe_variation', summary: 'Preview', payload: { sourceRecipeId: recipe.id, sourceUpdatedAt: recipe.updatedAt, recipe: { title: 'Unused' } } } })) }

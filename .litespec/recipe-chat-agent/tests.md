@@ -3,11 +3,11 @@ feature: recipe-chat-agent
 artifact: tests
 status: done
 owner: user
-version: 0.6
+version: 0.7
 created: 2026-09-03
-updated: 2026-09-20
-spec_version: 0.6
-plan_version: 0.6
+updated: 2026-09-22
+spec_version: 0.7
+plan_version: 0.7
 ---
 
 # Test Plan: Recipe Chat Agent
@@ -60,6 +60,10 @@ Use Worker tests with deterministic D1 fixtures and provider doubles for retriev
 | AC-11.2 | T-33 | Automated | Passing |
 | AC-12.1 | T-30 | Automated | Passing |
 | AC-12.2 | T-35, T-36 | Automated + production smoke | Passing |
+| AC-13.1 | T-38 | Automated | Passing |
+| AC-13.2 | T-40 | Automated | Passing |
+| AC-13.3 | T-39 | Automated | Passing |
+| AC-13.4 | T-38, T-39 | Automated | Passing |
 
 Every current-release acceptance criterion must appear exactly once in this table and map to at least one test or documented manual exception.
 
@@ -345,6 +349,24 @@ Offline completion requires the rubric, dataset, review-status gates, and report
 | 0.4 | 2026-09-19 | Added persistent conversation, tool-use, streaming, and reviewed-action coverage | Agents SDK assistant amendment | T-30–T-35, AC-08.1–AC-12.2 |
 | 0.5 | 2026-09-20 | Added late-result cancellation race coverage and production recheck | Production smoke exposed incomplete Stop semantics | T-36, AC-12.2 |
 | 0.6 | 2026-09-20 | Added partial citation-drift recovery coverage | Production comparison exposed one mistyped ID among otherwise valid citations | T-37, AC-09.1 |
+| 0.7 | 2026-09-22 | Added generated-recipe save coverage | Owner needs to retain complete general recipes safely | T-38–T-40, AC-13.1–AC-13.4 |
+
+## Version 0.7 evidence additions
+
+### T-38 — Validate and persist a generated-recipe preview
+- Covers: AC-13.1, AC-13.4
+- Level: Worker
+- Expected: A complete normalized general recipe is stored as `generated_recipe`; malformed drafts are omitted.
+
+### T-39 — Save a generated recipe once
+- Covers: AC-13.3, AC-13.4
+- Level: Worker integration
+- Expected: No recipe exists before Apply, one manual-source recipe exists after, repeat Apply fails safely, and Cancel makes no write.
+
+### T-40 — Save a generated recipe from responsive chat
+- Covers: AC-13.2
+- Level: Component and end-to-end
+- Expected: The preview exposes Save recipe, reports the saved state after resolution, and remains within the viewport at the existing widths.
 
 ## Version 0.4 evidence additions
 

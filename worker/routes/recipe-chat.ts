@@ -57,7 +57,7 @@ export async function handleRecipeChat(request: Request, env: Env, dependencies:
   candidates = bounded.candidates
   if (candidates.length === 0) return jsonResponse({ outcome: 'no_match', message: noMatchMessage } satisfies RecipeChatResponse)
   try {
-    const result = await (dependencies.provider ?? new OpenAiRecipeChat(env.OPENAI_API_KEY, env.OPENAI_MODEL)).answer(question, candidates, history)
+    const result = await (dependencies.provider ?? new OpenAiRecipeChat(env.OPENAI_API_KEY, env.RECIPE_CHAT_MODEL ?? env.OPENAI_MODEL)).answer(question, candidates, history)
     if (result.outcome && result.outcome !== 'answer') return jsonResponse({ outcome: result.outcome, message: result.message ?? noMatchMessage } satisfies RecipeChatResponse)
     const candidateTitles = new Map(candidates.map((recipe) => [recipe.id, recipe.title]))
     const seen = new Set<string>()

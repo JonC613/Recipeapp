@@ -24,6 +24,12 @@ export async function applyRecipeChatProposal(db: D1Database, conversationId: st
       await setProposalStatus(db, conversationId, proposalId, 'applied', result)
       return result
     }
+    if (proposal.kind === 'generated_recipe') {
+      const created = await createRecipe(db, normalizeManualRecipe(proposal.payload.recipe as never))
+      const result = { recipeId: created.id, title: created.title }
+      await setProposalStatus(db, conversationId, proposalId, 'applied', result)
+      return result
+    }
     const weekStart = normalizeWeekStart(String(proposal.payload.weekStart ?? ''))
     const expectedRevision = Number(proposal.payload.expectedRevision)
     const current = await getMealPlanWeek(db, weekStart)

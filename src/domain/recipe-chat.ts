@@ -21,7 +21,7 @@ export type RecipeChatResponse = RecipeChatAnswer | RecipeChatNoMatch | RecipeCh
 
 export type RecipeChatSourceKind = 'library' | 'general' | 'mixed'
 export type RecipeChatProposalStatus = 'pending' | 'applied' | 'cancelled' | 'stale' | 'failed'
-export type RecipeChatProposalKind = 'recipe_variation' | 'meal_plan' | 'grocery_update'
+export type RecipeChatProposalKind = 'recipe_variation' | 'generated_recipe' | 'meal_plan' | 'grocery_update'
 
 export interface RecipeChatProposal {
   id: string
